@@ -35,20 +35,18 @@ struct HomeView: View {
 }
 
 struct MainTabView: View {
+    @StateObject private var profileData = ProfileData()
     @State private var selectedTab: Int = 0 // 0: 홈, 1: 세션, 2: 프로필
 
     var body: some View {
         VStack(spacing: 0) {
-            Group {
-                if selectedTab == 0 {
-                    HomeView()
-                } else if selectedTab == 1 {
-                    SessionView()
-                } else {
-                    ProfileView()
-                }
+            if selectedTab == 0 {
+                HomeView()
+            } else if selectedTab == 1 {
+                SessionView(profileData: profileData)
+            } else {
+                ProfileView(profileData: profileData)
             }
-            // 하단 탭바 (SessionView와 동일)
             HStack(spacing: 60) {
                 TabBarItem(icon: "house.fill", title: "홈", isSelected: selectedTab == 0)
                     .onTapGesture { selectedTab = 0 }
@@ -64,6 +62,8 @@ struct MainTabView: View {
     }
 }
 
-#Preview {
-    MainTabView()
+struct HomeView_Previews: PreviewProvider {
+    static var previews: some View {
+        MainTabView()
+    }
 } 

@@ -1,51 +1,62 @@
 import SwiftUI
+import PhotosUI
 
 struct ProfileView: View {
+    @ObservedObject var profileData: ProfileData
+    @State private var showImagePicker = false
+    @State private var pickerItem: PhotosPickerItem?
+
     var body: some View {
-        VStack(spacing: 0) {
-            // 상단 프로필 헤더
-            HStack(spacing: 12) {
-                ZStack {
+        VStack(spacing: 32) {
+            Spacer()
+            // 프로필 이미지
+            ZStack {
+                if let data = profileData.imageData, let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 120, height: 120)
+                        .clipShape(Circle())
+                } else {
                     Circle()
                         .fill(Color(.systemGray4))
-                        .frame(width: 60, height: 60)
+                        .frame(width: 120, height: 120)
                     Image(systemName: "person.fill")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 32, height: 32)
+                        .frame(width: 60, height: 60)
                         .foregroundColor(.white)
                 }
-                VStack(alignment: .leading) {
-                    Text("고재현")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    Text("스케치북 프로필")
-                        .font(.subheadline)
-                        .foregroundColor(.gray)
-                }
-                Spacer()
             }
-            .padding(.top, 32)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 16)
-            .background(Color.white)
+            .onTapGesture { showImagePicker = true }
+            .photosPicker(isPresented: $showImagePicker, selection: $pickerItem)
+            .onChange(of: pickerItem) { newItem in
+                if let item = newItem {
+                    item.loadTransferable(type: Data.self) { result in
+                        if case .success(let data?) = result {
+                            DispatchQueue.main.async {
+                                profileData.imageData = data
+                            }
+                        }
+                    }
+                }
+            }
 
-            // 본문 (임시)
-            ZStack {
-                Color(white: 0.6).opacity(0.7).ignoresSafeArea()
-                VStack {
-                    Spacer()
-                    Text("프로필 화면 컨텐츠 영역")
-                        .font(.title3)
-                        .foregroundColor(.gray)
-                    Spacer()
-                }
-            }
+            // 닉네임
+            TextField("닉네임", text: $profileData.nickname)
+                .font(.title2)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+
+            Spacer()
         }
-        .edgesIgnoringSafeArea(.bottom)
+        .background(Color(.systemBackground))
+        .navigationTitle("프로필")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
 #Preview {
-    ProfileView()
+    ProfileView(profileData: ProfileData())
 } 
