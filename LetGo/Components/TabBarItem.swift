@@ -13,7 +13,7 @@ struct TabBarItem: View {
                 .font(.caption)
         }
         .offset(y: -10)
-        .foregroundColor(isSelected ? Color(.darkGray) : .gray)
+        .foregroundColor(isSelected ? Color(.black) : .gray)
         .frame(minWidth: 60)
     }
 }

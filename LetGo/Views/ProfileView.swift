@@ -41,15 +41,6 @@ struct ProfileView: View {
                     Spacer()
                 }
             }
-
-            // 하단 탭바 (SessionView와 동일)
-            HStack(spacing: 60) {
-                TabBarItem(icon: "house.fill", title: "홈", isSelected: false)
-                TabBarItem(icon: "square.and.pencil", title: "세션", isSelected: false)
-                TabBarItem(icon: "person.fill", title: "프로필", isSelected: true)
-            }
-            .frame(height: 100)
-            .background(Color.white)
         }
         .edgesIgnoringSafeArea(.bottom)
     }
