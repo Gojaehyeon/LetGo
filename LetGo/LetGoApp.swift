@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct LetGoApp: App {
+    init() {
+        // Force light mode
+        UIView.appearance().overrideUserInterfaceStyle = .light
+    }
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainTabView()
         }
     }
 }
