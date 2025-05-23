@@ -63,6 +63,7 @@ struct SessionView: View {
     @State private var selectedTab: Int = 0 // 0: 글쓰기 세션, 1: 오늘의 한마디
     @State private var selectedSession: Int = 0 // 캐러셀 인덱스
     @State private var bgImageId: Int = 0 // 배경 이미지 페이드용
+    @State private var showModeSetting = false
 
     let profileImage: Image? = nil
 
@@ -261,6 +262,24 @@ struct SessionView: View {
                                     .background(Circle().fill(Color.orange.opacity(0.8)))
                             }
                             .padding(.top, 8)
+
+                            // 모드 설정 버튼
+                            Button(action: {
+                                showModeSetting = true
+                            }) {
+                                Text("모드 설정")
+                                    .font(.headline)
+                                    .foregroundColor(.black)
+                                    .padding(.horizontal, 32)
+                                    .padding(.vertical, 12)
+                                    .background(Capsule().fill(Color.white))
+                                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 1)
+                            }
+                            .padding(.top, 8)
+                            .sheet(isPresented: $showModeSetting) {
+                                ModeSettingView()
+                                    .presentationDetents([.medium, .large])
+                            }
                         }
                     }
                 } else {
