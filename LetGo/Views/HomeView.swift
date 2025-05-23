@@ -1,35 +1,47 @@
 import SwiftUI
 
 struct HomeView: View {
+    @ObservedObject var profileData: ProfileData
     var body: some View {
         VStack(spacing: 0) {
-            // 상단 (예시)
-            HStack(spacing: 12) {
-                Image(systemName: "house.fill")
-                    .resizable()
-                    .frame(width: 32, height: 32)
-                    .foregroundColor(.gray)
-                Text("LetGo 홈")
-                    .font(.headline)
-                    .fontWeight(.bold)
-                Spacer()
-            }
-            .padding(.top, 32)
-            .padding(.horizontal, 20)
-            .padding(.bottom, 16)
-            .background(Color.white)
-
-            // 본문 (임시)
-            ZStack {
-                Color(white: 0.6).opacity(0.7).ignoresSafeArea()
-                VStack {
-                    Spacer()
-                    Text("홈 화면 컨텐츠 영역")
-                        .font(.title3)
-                        .foregroundColor(.gray)
+            // 상단 (세션뷰와 동일하게)
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 12) {
+                    if let data = profileData.imageData, let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: 44, height: 44)
+                            .clipShape(Circle())
+                    } else {
+                        ZStack {
+                            Circle()
+                                .fill(Color(.systemGray4))
+                                .frame(width: 44, height: 44)
+                            Image(systemName: "person.fill")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 24, height: 24)
+                                .foregroundColor(.white)
+                        }
+                    }
+                    Text(profileData.nickname)
+                        .font(.headline)
+                        .fontWeight(.bold)
                     Spacer()
                 }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 0)
+                .background(Color.white)
             }
+            .padding(.top)
+
+            // 본문 (탭바 없이 모두 표시)
+            ZStack {
+                Color(.systemGray5).opacity(0.7).ignoresSafeArea()
+                // 오늘의 한마디 + 작성한 글들 모두 표시 (디자인 예정)
+            }
+            .padding(.top, 12)
         }
     }
 }
@@ -41,7 +53,7 @@ struct MainTabView: View {
     var body: some View {
         VStack(spacing: 0) {
             if selectedTab == 0 {
-                HomeView()
+                HomeView(profileData: profileData)
             } else if selectedTab == 1 {
                 SessionView(profileData: profileData)
             } else {

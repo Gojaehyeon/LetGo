@@ -167,7 +167,7 @@ struct SessionView: View {
                         .frame(maxWidth: .infinity)
                     }
                 }
-                .padding(.top, 32)
+                .padding(.top, 24)
                 .padding(.horizontal, 20)
                 .background(Color.white)
             }
@@ -258,7 +258,7 @@ struct SessionView: View {
                                     .font(.title)
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
-                                    .frame(width: 180, height: 180)
+                                    .frame(width: 170, height: 170)
                                     .background(Circle().fill(Color.orange.opacity(0.8)))
                             }
                             .padding(.top, 8)
