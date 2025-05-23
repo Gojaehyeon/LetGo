@@ -1,8 +1,14 @@
 import SwiftUI
+import SwiftData
 
 struct OneLineView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Query(sort: [SortDescriptor(\Writing.date, order: .reverse)]) var allWritings: [Writing]
     @State private var oneLineText = ""
-    @State private var lines: [String] = []
+    
+    var oneLines: [Writing] {
+        allWritings.filter { $0.type == WritingType.oneLine.rawValue }
+    }
     
     var body: some View {
         VStack(spacing: 20) {
@@ -12,7 +18,8 @@ struct OneLineView: View {
             Button(action: {
                 let trimmed = oneLineText.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmed.isEmpty {
-                    lines.insert(trimmed, at: 0)
+                    let writing = Writing(title: "오늘의 한마디", content: trimmed, date: Date(), type: .oneLine)
+                    modelContext.insert(writing)
                     oneLineText = ""
                 }
             }) {
@@ -26,8 +33,8 @@ struct OneLineView: View {
             }
             .padding(.horizontal, 24)
             List {
-                ForEach(lines, id: \.self) { line in
-                    Text(line)
+                ForEach(oneLines, id: \ .self) { writing in
+                    Text(writing.content)
                         .padding(.vertical, 8)
                 }
             }

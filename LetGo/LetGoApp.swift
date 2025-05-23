@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct LetGoApp: App {
@@ -16,6 +17,7 @@ struct LetGoApp: App {
     var body: some Scene {
         WindowGroup {
             MainTabView()
+                .modelContainer(for: Writing.self)
         }
     }
 }

@@ -1,8 +1,10 @@
 import SwiftUI
+import SwiftData
+import Foundation
 
 struct WriteView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var viewModel = WritingViewModel()
+    @Environment(\.modelContext) private var modelContext
     
     @State private var title = ""
     @State private var content = ""
@@ -38,8 +40,8 @@ struct WriteView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("저장") {
-                        let writing = Writing(title: title, content: content, type: selectedType)
-                        viewModel.addWriting(writing)
+                        let writing = Writing(title: title, content: content, date: Date(), type: selectedType)
+                        modelContext.insert(writing)
                         dismiss()
                     }
                 }

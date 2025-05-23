@@ -57,6 +57,62 @@ struct SessionInfo {
     let backgroundImage: String
 }
 
+struct SessionCarouselView: View {
+    let sessions: [SessionInfo]
+    @Binding var selectedSession: Int
+    var body: some View {
+        VStack(spacing: 0) {
+            TabView(selection: $selectedSession) {
+                ForEach(0..<sessions.count, id: \.self) { idx in
+                    let session = sessions[idx]
+                    HStack {
+                        Image(session.imageName)
+                            .resizable()
+                            .aspectRatio(1, contentMode: .fill)
+                            .frame(width: 80, height: 80)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .padding(.trailing, 12)
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text(session.subtitle)
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                            Text(session.title)
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.black)
+                            Text(session.timeDesc)
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        .frame(height: 100)
+                        Spacer()
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(20)
+                    .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 1)
+                    .frame(width: UIScreen.main.bounds.width - 40)
+                    .tag(idx)
+                }
+            }
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .frame(height: 170)
+            .padding(.bottom, 12)
+
+            // 인디케이터 (세션 개수만큼)
+            HStack(spacing: 6) {
+                ForEach(0..<sessions.count, id: \.self) { idx in
+                    Capsule()
+                        .fill(selectedSession == idx ? Color.orange : Color.white)
+                        .frame(width: selectedSession == idx ? 20 : 12, height: 6)
+                        .animation(.easeInOut(duration: 0.18), value: selectedSession)
+                }
+            }
+            .padding(.bottom, 1)
+        }
+    }
+}
+
 struct SessionView: View {
     @ObservedObject var profileData: ProfileData
     @Namespace private var tabAnimation
@@ -174,125 +230,21 @@ struct SessionView: View {
             .padding(.top)
 
             // 본문
-            ZStack {
-                // 배경 이미지
-                ZStack {
-                    ForEach(0..<sessions.count, id: \.self) { idx in
-                        if selectedTab == 0 && selectedSession == idx {
-                            LoopingVideoPlayer(videoName: sessions[idx].backgroundImage)
-                                .ignoresSafeArea()
-                                .transition(.opacity)
-                                .id(idx)
-                        }
-                    }
-                    // 검정 반투명 오버레이
-                    Color.black.opacity(0.5)
-                }
-                .animation(.easeInOut(duration: 0.4), value: selectedSession)
-                .ignoresSafeArea()
-
-                if selectedTab == 0 {
-                    ScrollView {
-                        VStack(spacing: 32) {
-                            // 캐러셀
-                            TabView(selection: $selectedSession) {
-                                ForEach(0..<sessions.count, id: \.self) { idx in
-                                    let session = sessions[idx]
-                                    HStack {
-                                        Image(session.imageName)
-                                            .resizable()
-                                            .aspectRatio(1, contentMode: .fill)
-                                            .frame(width: 80, height: 80)
-                                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                                            .padding(.trailing, 12)
-                                        VStack(alignment: .leading, spacing: 6) {
-                                            Text(session.subtitle)
-                                                .font(.subheadline)
-                                                .foregroundColor(.gray)
-                                            Text(session.title)
-                                                .font(.headline)
-                                                .fontWeight(.bold)
-                                                .foregroundColor(.black)
-                                            Text(session.timeDesc)
-                                                .font(.caption)
-                                                .foregroundColor(.gray)
-                                        }
-                                        .frame(height: 100)
-                                        Spacer()
-                                    }
-                                    .padding()
-                                    .background(Color.white)
-                                    .cornerRadius(20)
-                                    .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 1)
-                                    .frame(width: UIScreen.main.bounds.width - 40)
-                                    .tag(idx)
-                                }
-                            }
-                            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                            .frame(height: 150)
-                            .padding(.top, 24)
-                            .padding(.bottom, -12)
-
-                            // 인디케이터 (세션 개수만큼)
-                            HStack(spacing: 6) {
-                                ForEach(0..<sessions.count, id: \.self) { idx in
-                                    Capsule()
-                                        .fill(selectedSession == idx ? Color.orange : Color.white)
-                                        .frame(width: selectedSession == idx ? 20 : 12, height: 6)
-                                        .animation(.easeInOut(duration: 0.18), value: selectedSession)
-                                }
-                            }
-
-                            // 안내문구 (선택된 세션에 맞게)
-                            Text(sessions[selectedSession].guide)
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .multilineTextAlignment(.center)
-                                .padding(.horizontal, 20)
-
-                            // 시작하기 버튼
-                            Button(action: {
-                                // 세션 시작 액션
-                            }) {
-                                Text("시작하기")
-                                    .font(.title)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.white)
-                                    .frame(width: 170, height: 170)
-                                    .background(Circle().fill(Color.orange.opacity(0.8)))
-                            }
-                            .padding(.top, 8)
-
-                            // 모드 설정 버튼
-                            Button(action: {
-                                showModeSetting = true
-                            }) {
-                                Text("모드 설정")
-                                    .font(.headline)
-                                    .foregroundColor(.black)
-                                    .padding(.horizontal, 32)
-                                    .padding(.vertical, 12)
-                                    .background(Capsule().fill(Color.white))
-                                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 1)
-                            }
-                            .padding(.top, 8)
-                            .sheet(isPresented: $showModeSetting) {
-                                ModeSettingView()
-                                    .presentationDetents([.medium, .large])
-                            }
-                        }
-                    }
-                } else {
-                    OneLineView()
-                }
-            }
+            SessionMainView(
+                sessions: sessions,
+                selectedTab: selectedTab,
+                selectedSession: $selectedSession,
+                showModeSetting: $showModeSetting
+            )
         }
         .edgesIgnoringSafeArea(.bottom)
     }
 }
 
 #Preview {
-    SessionView(profileData: ProfileData())
+    SessionView(
+        profileData: ProfileData()
+    )
 }
 
 class ProfileData: ObservableObject {
@@ -306,5 +258,42 @@ class ProfileData: ObservableObject {
     init() {
         self.nickname = UserDefaults.standard.string(forKey: "nickname") ?? "Letgo"
         self.imageData = UserDefaults.standard.data(forKey: "profileImage")
+    }
+}
+
+struct SessionMainView: View {
+    let sessions: [SessionInfo]
+    let selectedTab: Int
+    @Binding var selectedSession: Int
+    @Binding var showModeSetting: Bool
+
+    var body: some View {
+        ZStack {
+            ZStack {
+                ForEach(0..<sessions.count, id: \.self) { idx in
+                    if selectedTab == 0 && selectedSession == idx {
+                        LoopingVideoPlayer(videoName: sessions[idx].backgroundImage)
+                            .ignoresSafeArea()
+                            .transition(.opacity)
+                            .id(idx)
+                    }
+                }
+                Color.black.opacity(0.5)
+            }
+            .animation(.easeInOut(duration: 0.4), value: selectedSession)
+            .ignoresSafeArea()
+
+            if selectedTab == 0 {
+                ScrollView {
+                    SessionContentView(
+                        sessions: sessions,
+                        selectedSession: $selectedSession,
+                        showModeSetting: $showModeSetting
+                    )
+                }
+            } else {
+                OneLineView()
+            }
+        }
     }
 }

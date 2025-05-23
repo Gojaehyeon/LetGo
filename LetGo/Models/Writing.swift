@@ -1,17 +1,21 @@
 import Foundation
+import SwiftData
 
-struct Writing: Identifiable {
-    let id: UUID
-    var title: String
-    var content: String
-    var date: Date
-    var type: WritingType
+@Model
+class Writing {
+    @Attribute var title: String
+    @Attribute var content: String
+    @Attribute var date: Date
+    @Attribute var type: String // Store WritingType as String
     
-    init(id: UUID = UUID(), title: String, content: String, date: Date = Date(), type: WritingType) {
-        self.id = id
+    init(title: String, content: String, date: Date, type: WritingType) {
         self.title = title
         self.content = content
         self.date = date
-        self.type = type
+        self.type = type.rawValue
+    }
+    
+    var writingType: WritingType {
+        WritingType(rawValue: type) ?? .daily
     }
 } 
