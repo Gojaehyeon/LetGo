@@ -292,7 +292,7 @@ struct SessionMainView: View {
                     )
                 }
             } else {
-                OneLineView()
+                OneLineView(selectedTab: .constant(0))
             }
         }
     }

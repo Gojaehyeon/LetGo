@@ -3,6 +3,7 @@ import SwiftData
 
 struct HomeView: View {
     @ObservedObject var profileData: ProfileData
+    @Environment(\.modelContext) private var modelContext
     @Query(sort: [SortDescriptor(\Writing.date, order: .reverse)]) var writings: [Writing]
     
     var body: some View {
@@ -61,6 +62,14 @@ struct HomeView: View {
                                     }) {
                                         Image(systemName: "square.and.arrow.up")
                                             .foregroundColor(.gray)
+                                    }
+                                    .padding(.trailing, 4)
+                                    Button(action: {
+                                        // 삭제 로직
+                                        modelContext.delete(writing)
+                                    }) {
+                                        Image(systemName: "trash")
+                                            .foregroundColor(.red)
                                     }
                                 }
                                 .padding(.top, 10)
