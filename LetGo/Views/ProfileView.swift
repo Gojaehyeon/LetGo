@@ -7,8 +7,23 @@ struct ProfileView: View {
     @State private var pickerItem: PhotosPickerItem?
 
     var body: some View {
+        ZStack(alignment: .top) {
+            Rectangle()
+                .fill(Color.white)
+                .frame(height: 56)
+            HStack {
+                Text("내 정보 편집")
+                    .font(.system(size: 22, weight: .bold))
+                    .padding(.leading, 20)
+                Spacer()
+            }
+            .padding(.top, 16)
+            .padding(.bottom, 8)
+        }
+    Rectangle()
+        .frame(height: 1)
+        .foregroundColor(.gray.opacity(0.3))
         VStack(spacing: 32) {
-            Spacer()
             // 프로필 이미지
             ZStack {
                 if let data = profileData.imageData, let uiImage = UIImage(data: data) {
@@ -28,6 +43,7 @@ struct ProfileView: View {
                         .foregroundColor(.white)
                 }
             }
+            .padding(.top, 24)
             .onTapGesture { showImagePicker = true }
             .photosPicker(isPresented: $showImagePicker, selection: $pickerItem)
             .onChange(of: pickerItem) { newItem in
@@ -44,10 +60,19 @@ struct ProfileView: View {
 
             // 닉네임
             TextField("닉네임", text: $profileData.nickname)
-                .font(.title2)
+                .font(.system(size: 18, weight: .semibold))
+                .padding(.vertical, 10)
+                .padding(.horizontal, 20)
+                .background(
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(Color(.white))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color(.systemGray4), lineWidth: 1)
+                )
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 32)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .padding(.horizontal, 64)
 
             Spacer()
         }
