@@ -8,41 +8,31 @@ struct HomeView: View {
     
     var body: some View {
         ZStack(alignment: .top) {
-            Color(.systemGray5).ignoresSafeArea()
+            Color(.white).ignoresSafeArea()
             Color.white.ignoresSafeArea(edges: .top)
             VStack(spacing: 0) {
-                // 상단 프로필
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack(spacing: 12) {
-                        if let data = profileData.imageData, let uiImage = UIImage(data: data) {
-                            Image(uiImage: uiImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .frame(width: 44, height: 44)
-                                .clipShape(Circle())
-                        } else {
-                            ZStack {
-                                Circle()
-                                    .fill(Color(.systemGray4))
-                                    .frame(width: 44, height: 44)
-                                Image(systemName: "person.fill")
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 24, height: 24)
-                                    .foregroundColor(.white)
-                            }
+                // 상단 전체보기 영역
+                    ZStack(alignment: .top) {
+                        Rectangle()
+                            .fill(Color.white)
+                            .frame(height: 56)
+                        HStack {
+                            Text("전체보기")
+                                .font(.system(size: 22, weight: .bold))
+                                .padding(.leading, 20)
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 16, weight: .medium))
+                                .padding(.top, 2)
+                            Spacer()
                         }
-                        Text(profileData.nickname)
-                            .font(.headline)
-                            .fontWeight(.bold)
-                        Spacer()
+                        .padding(.top, 16)
+                        .padding(.bottom, 8)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.bottom, 0)
-                    .background(Color.white)
-                }
-                .padding(.top)
-                .padding(.bottom, 24)
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(.gray.opacity(0.3))
+//                    .shadow(color: Color.black.opacity(0.08), radius: 8, y: 2)
+
 
                 // 본문
                 ScrollView {

@@ -7,7 +7,6 @@ struct OneLineView: View {
     @State private var oneLineText = ""
     @State private var keyboardHeight: CGFloat = 0
     @FocusState private var isTextFieldFocused: Bool
-    @Binding var selectedTab: Int
     
     var oneLines: [Writing] {
         allWritings.filter { $0.type == WritingType.oneLine.rawValue }
@@ -54,50 +53,48 @@ struct OneLineView: View {
                     }
                 }
             }
-            // 입력창 & 전송 버튼
-            VStack {
-                Spacer()
-                HStack(spacing: 8) {
-                    TextField(sentToday ? "" : "오늘의 한마디를 입력하세요", text: $oneLineText)
-                        .textFieldStyle(PlainTextFieldStyle())
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-                        .background(Color(.systemGray5))
-                        .cornerRadius(20)
-                        .focused($isTextFieldFocused)
-                        .disabled(sentToday)
-                        .foregroundColor(sentToday ? .gray : .primary)
-                        .overlay(
-                            Group {
-                                if sentToday {
-                                    Text("하루에 한 개만 입력할 수 있어요.")
-                                        .foregroundColor(.gray)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 12)
-                                }
-                            }, alignment: .leading
-                        )
-                    Button(action: {
-                        let trimmed = oneLineText.trimmingCharacters(in: .whitespacesAndNewlines)
-                        if !trimmed.isEmpty && !sentToday {
-                            let writing = Writing(title: "오늘의 한마디", content: trimmed, date: Date(), type: .oneLine)
-                            modelContext.insert(writing)
-                            oneLineText = ""
-                        }
-                    }) {
-                        Image(systemName: "arrow.up.circle.fill")
-                            .resizable()
-                            .frame(width: 36, height: 36)
-                            .foregroundColor(sentToday ? Color(.systemGray3) : Color.blue)
-                    }
+            // 입력창 & 전송 버튼 (항상 하단에 고정)
+            HStack(spacing: 8) {
+                TextField(sentToday ? "" : "오늘의 한마디를 입력하세요", text: $oneLineText)
+                    .textFieldStyle(PlainTextFieldStyle())
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color(.systemGray5))
+                    .cornerRadius(20)
+                    .focused($isTextFieldFocused)
                     .disabled(sentToday)
+                    .foregroundColor(sentToday ? .gray : .white)
+                    .overlay(
+                        Group {
+                            if sentToday {
+                                Text("하루에 한 개만 입력할 수 있어요.")
+                                    .foregroundColor(.gray)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 12)
+                            }
+                        }, alignment: .leading
+                    )
+                Button(action: {
+                    let trimmed = oneLineText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty && !sentToday {
+                        let writing = Writing(title: "오늘의 한마디", content: trimmed, date: Date(), type: .oneLine)
+                        modelContext.insert(writing)
+                        oneLineText = ""
+                    }
+                }) {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .resizable()
+                        .frame(width: 36, height: 36)
+                        .foregroundColor(sentToday ? Color(.systemGray3) : Color.orange)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color(.systemBackground).opacity(0.95))
-                .padding(.bottom, keyboardHeight)
-                .animation(.easeInOut(duration: 0.2), value: keyboardHeight)
+                .disabled(sentToday)
             }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color.clear)
+            .padding(.bottom, keyboardHeight > 0 ? keyboardHeight : 80)
+            .animation(.easeInOut(duration: 0.2), value: keyboardHeight)
+
         }
         .onAppear {
             subscribeToKeyboardNotifications()
@@ -105,6 +102,7 @@ struct OneLineView: View {
         .onDisappear {
             unsubscribeFromKeyboardNotifications()
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
     }
     
     // MARK: - Keyboard Handling
@@ -135,5 +133,6 @@ private let dateFormatter: DateFormatter = {
 }()
 
 #Preview {
-    OneLineView(selectedTab: .constant(0))
+    OneLineView()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
 } 

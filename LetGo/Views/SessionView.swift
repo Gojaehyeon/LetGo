@@ -116,7 +116,7 @@ struct SessionCarouselView: View {
 struct SessionView: View {
     @ObservedObject var profileData: ProfileData
     @Namespace private var tabAnimation
-    @State private var selectedTab: Int = 0 // 0: 글쓰기 세션, 1: 오늘의 한마디
+    @State private var innerTab: Int = 0 // 0: 글쓰기 세션, 1: 오늘의 한마디
     @State private var selectedSession: Int = 0 // 캐러셀 인덱스
     @State private var bgImageId: Int = 0 // 배경 이미지 페이드용
     @State private var showModeSetting = false
@@ -187,7 +187,7 @@ struct SessionView: View {
                     ForEach(0..<2) { idx in
                         Button(action: {
                             withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                selectedTab = idx
+                                innerTab = idx
                             }
                         }) {
                             VStack(spacing: 12) {
@@ -197,19 +197,19 @@ struct SessionView: View {
                                         .font(.system(size: 18, weight: .bold))
                                         .fontWeight(.bold)
                                         .foregroundColor(.black)
-                                        .opacity(selectedTab == idx ? 1 : 0)
-                                        .animation(.easeInOut(duration: 0.18), value: selectedTab)
+                                        .opacity(innerTab == idx ? 1 : 0)
+                                        .animation(.easeInOut(duration: 0.18), value: innerTab)
                                     // 비선택 스타일
                                     Text(idx == 0 ? "글쓰기 세션" : "오늘의 한마디")
                                         .font(.system(size: 18, weight: .regular))
                                         .fontWeight(.regular)
                                         .foregroundColor(.gray)
-                                        .opacity(selectedTab == idx ? 0 : 1)
-                                        .animation(.easeInOut(duration: 0.18), value: selectedTab)
+                                        .opacity(innerTab == idx ? 0 : 1)
+                                        .animation(.easeInOut(duration: 0.18), value: innerTab)
                                 }
                                 // 밑줄 인디케이터
                                 ZStack {
-                                    if selectedTab == idx {
+                                    if innerTab == idx {
                                         Rectangle()
                                             .frame(height: 3)
                                             .foregroundColor(.black)
@@ -232,7 +232,7 @@ struct SessionView: View {
             // 본문
             SessionMainView(
                 sessions: sessions,
-                selectedTab: selectedTab,
+                innerTab: innerTab,
                 selectedSession: $selectedSession,
                 showModeSetting: $showModeSetting
             )
@@ -263,7 +263,7 @@ class ProfileData: ObservableObject {
 
 struct SessionMainView: View {
     let sessions: [SessionInfo]
-    let selectedTab: Int
+    let innerTab: Int
     @Binding var selectedSession: Int
     @Binding var showModeSetting: Bool
 
@@ -271,7 +271,7 @@ struct SessionMainView: View {
         ZStack {
             ZStack {
                 ForEach(0..<sessions.count, id: \.self) { idx in
-                    if selectedTab == 0 && selectedSession == idx {
+                    if innerTab == 0 && selectedSession == idx {
                         LoopingVideoPlayer(videoName: sessions[idx].backgroundImage)
                             .ignoresSafeArea()
                             .transition(.opacity)
@@ -283,7 +283,7 @@ struct SessionMainView: View {
             .animation(.easeInOut(duration: 0.4), value: selectedSession)
             .ignoresSafeArea()
 
-            if selectedTab == 0 {
+            if innerTab == 0 {
                 ScrollView {
                     SessionContentView(
                         sessions: sessions,
@@ -292,7 +292,7 @@ struct SessionMainView: View {
                     )
                 }
             } else {
-                OneLineView(selectedTab: .constant(0))
+                OneLineView()
             }
         }
     }

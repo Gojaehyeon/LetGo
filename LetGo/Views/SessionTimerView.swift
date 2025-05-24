@@ -38,8 +38,12 @@ struct SessionTimerView: View {
         }
     }
     var sessionType: WritingType {
-        // 필요시 타입별로 다르게 지정
-        return .oneLine
+        switch duration {
+        case 180: return .threeMin
+        case 300: return .fiveMin
+        case 420: return .sevenMin
+        default: return .threeMin
+        }
     }
 
     var body: some View {

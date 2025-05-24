@@ -13,12 +13,12 @@ struct WritingCard: View {
     }
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack {
-//                Image(systemName: writing.writingType.icon)
-//                    .foregroundColor(.blue)
+                //                Image(systemName: writing.writingType.icon)
+                //                    .foregroundColor(.blue)
                 Text(firstSentence)
-                    .font(.headline)
+                    .font(.system(size: 18, weight: .bold))
                 Text(writing.writingType.rawValue)
                     .font(.caption)
                     .padding(.horizontal, 8)
@@ -28,20 +28,29 @@ struct WritingCard: View {
                     )
                     .cornerRadius(4)
                 Spacer()
+                Image(systemName: "ellipsis")
+                    .foregroundColor(.gray)
             }
             
             Text(writing.content)
-                .font(.body)
+                .font(.system(size: 14, weight: .regular))
+                .foregroundColor(.black)
+                .opacity(0.65)
                 .lineLimit(3)
             Text(writing.date.formatted(date: .abbreviated, time: .shortened))
                 .font(.caption)
                 .foregroundColor(.gray)
-
+            Rectangle()
+                .frame(height: 1)
+                .foregroundColor(.gray.opacity(0.3))
+                .padding(.top, 12)
+            
         }
-        .padding()
         .background(Color(.systemBackground))
-        .cornerRadius(15)
-        .shadow(color: Color.gray.opacity(0.5), radius: 5, x: 0, y: 0)    }
+        .padding(.horizontal, 4)
+//        .cornerRadius(15)
+//        .shadow(color: Color.gray.opacity(0.5), radius: 5, x: 0, y: 0)
+    }
 }
 
 #Preview {
