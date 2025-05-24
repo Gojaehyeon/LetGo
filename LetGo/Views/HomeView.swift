@@ -4,6 +4,7 @@ import SwiftData
 struct HomeView: View {
     @ObservedObject var profileData: ProfileData
     @Environment(\.modelContext) private var modelContext
+    @Binding var selectedTab: Int
     @Query(sort: [SortDescriptor(\Writing.date, order: .reverse)]) var writings: [Writing]
     
     var body: some View {
@@ -40,47 +41,39 @@ struct HomeView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 0)
                     .background(Color.white)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedTab = 2
+                    }
                 }
                 .padding(.top)
-                .padding(.bottom, 12)
+                .padding(.bottom, 24)
 
                 // 본문
                 ScrollView {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 8) {
                         ForEach(writings, id: \ .self) { writing in
-                            VStack(alignment: .leading, spacing: 8) {
-                                HStack(spacing: 8) {
-                                    Text(writing.date, formatter: dateFormatter)
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                    Text("| \(writing.title)")
-                                        .font(.caption)
-                                        .foregroundColor(.gray)
-                                    Spacer()
-                                    Button(action: {
-                                        // 공유 액션 (임시)
-                                    }) {
-                                        Image(systemName: "square.and.arrow.up")
-                                            .foregroundColor(.gray)
-                                    }
-                                    .padding(.trailing, 4)
-                                    Button(action: {
-                                        // 삭제 로직
-                                        modelContext.delete(writing)
-                                    }) {
-                                        Image(systemName: "trash")
-                                            .foregroundColor(.red)
-                                    }
-                                }
-                                .padding(.top, 10)
-                                .padding(.horizontal, 10)
-                                Text(writing.content)
-                                    .font(.body)
-                                    .foregroundColor(.black)
-                                    .padding(12)
+                            ZStack(alignment: .topTrailing) {
+                                WritingCard(writing: writing)
+//                                HStack(spacing: 0) {
+//                                    Button(action: {
+//                                        // 공유 액션 (임시)
+//                                    }) {
+//                                        Image(systemName: "square.and.arrow.up")
+//                                            .foregroundColor(.gray)
+//                                    }
+//                                    .padding(.trailing, 8)
+//                                    Button(action: {
+//                                        // 삭제 로직
+//                                        modelContext.delete(writing)
+//                                    }) {
+//                                        Image(systemName: "trash")
+//                                            .foregroundColor(.red)
+//                                    }
+//                                }
+//                                .padding(.top, 8)
+//                                .padding(.trailing, 12)
                             }
-                            .background(Color.white)
-                            .cornerRadius(12)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 4)
                         }

@@ -38,7 +38,7 @@ struct SessionContentView: View {
                 startSession: { isSessionActive = true }
             )
         }
-        .padding(.top, 20)
+        .padding(.top, 24)
         .fullScreenCover(isPresented: $isSessionActive) {
             SessionTimerView(duration: sessionDuration)
         }
@@ -60,7 +60,7 @@ struct SessionControlSection: View {
     var startSession: () -> Void = {}
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 24) {
             Text(session.guide)
                 .font(.headline)
                 .foregroundColor(.white)
@@ -74,23 +74,23 @@ struct SessionControlSection: View {
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
-                    .frame(width: 170, height: 170)
-                    .background(Circle().fill(Color.orange.opacity(0.8)))
+                    .frame(width: 190, height: 190)
+                    .background(Circle().fill(Color.orange.opacity(0.85)))
             }
-            .padding(.top, 20)
+            .padding(.top, 32)
             .padding(.bottom, 20)
 
-            Button(action: {
-                showModeSetting = true
-            }) {
-                Text("모드 설정")
-                    .font(.headline)
-                    .foregroundColor(.black)
-                    .padding(.horizontal, 32)
-                    .padding(.vertical, 12)
-                    .background(Capsule().fill(Color.white))
-                    .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 1)
-            }
+            // Button(action: {
+            //     showModeSetting = true
+            // }) {
+            //     Text("모드 설정")
+            //         .font(.headline)
+            //         .foregroundColor(.black)
+            //         .padding(.horizontal, 32)
+            //         .padding(.vertical, 12)
+            //         .background(Capsule().fill(Color.white))
+            //         .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 1)
+            // }
         }
     }
 }

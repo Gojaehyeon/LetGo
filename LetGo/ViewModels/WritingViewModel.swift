@@ -1,1 +1,0 @@
-// This file is now obsolete. All writings are managed by SwiftData. 

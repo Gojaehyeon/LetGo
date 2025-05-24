@@ -39,7 +39,7 @@ struct SessionTimerView: View {
     }
     var sessionType: WritingType {
         // 필요시 타입별로 다르게 지정
-        return .daily
+        return .oneLine
     }
 
     var body: some View {

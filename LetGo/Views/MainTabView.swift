@@ -2,14 +2,14 @@ import SwiftUI
 
 struct MainTabView: View {
     @StateObject private var profileData = ProfileData()
-    @State private var selectedTab: Int = 0 // 0: 홈, 1: 세션, 2: 프로필
+    @State private var selectedTab: Int = 1 // 0: 홈, 1: 세션, 2: 프로필
 
     var body: some View {
         VStack(spacing: 0) {
             if selectedTab == 0 {
-                HomeView(profileData: profileData)
+                HomeView(profileData: profileData, selectedTab: $selectedTab)
             } else if selectedTab == 1 {
-                SessionView(profileData: profileData)
+                SessionView(profileData: profileData, selectedTab: $selectedTab)
             } else {
                 ProfileView(profileData: profileData)
             }

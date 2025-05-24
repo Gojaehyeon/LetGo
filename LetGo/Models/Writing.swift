@@ -16,6 +16,6 @@ class Writing {
     }
     
     var writingType: WritingType {
-        WritingType(rawValue: type) ?? .daily
+        WritingType(rawValue: type) ?? .threeMin
     }
 } 

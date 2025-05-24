@@ -8,7 +8,7 @@ struct WriteView: View {
     
     @State private var title = ""
     @State private var content = ""
-    @State private var selectedType: WritingType = .daily
+    @State private var selectedType: WritingType = .oneLine
     
     var body: some View {
         NavigationView {
