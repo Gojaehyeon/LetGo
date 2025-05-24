@@ -38,7 +38,9 @@ struct HomeView: View {
                     VStack(spacing: 8) {
                         ForEach(writings, id: \ .self) { writing in
                             ZStack(alignment: .topTrailing) {
-                                WritingCard(writing: writing)
+                                WritingCard(writing: writing, onDelete: { w in
+                                    modelContext.delete(w)
+                                })
 //                                HStack(spacing: 0) {
 //                                    Button(action: {
 //                                        // 공유 액션 (임시)
