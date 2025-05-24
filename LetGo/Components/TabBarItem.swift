@@ -2,25 +2,23 @@ import SwiftUI
 
 struct TabBarItem: View {
     let icon: String
-    let title: String
     let isSelected: Bool
+    var isSessionView: Bool = false
     
     var body: some View {
-        VStack(spacing: 0) {
-            Image(systemName: icon)
-                .font(.system(size: 28))
-        }
-        .offset(y: -10)
-        .foregroundColor(isSelected ? Color(.black) : .gray)
-        .frame(minWidth: 40, minHeight: 40)
+        Image(systemName: icon)
+            .font(.system(size: 24))
+            .foregroundColor(
+                isSelected ? (isSessionView ? .white.opacity(0.8) : Color.black.opacity(0.85)) : .gray
+            )
     }
 }
 
 #Preview {
     HStack {
-        TabBarItem(icon: "line.3.horizontal.square", title: "홈", isSelected: true)
-        TabBarItem(icon: "square.and.pencil", title: "세션", isSelected: false)
-        TabBarItem(icon: "person.fill", title: "프로필", isSelected: false)
+        TabBarItem(icon: "line.3.horizontal.square", isSelected: true)
+        TabBarItem(icon: "square.and.pencil", isSelected: false)
+        TabBarItem(icon: "person.fill", isSelected: false)
     }
     .padding()
 } 

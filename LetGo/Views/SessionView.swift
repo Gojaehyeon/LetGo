@@ -69,7 +69,7 @@ struct SessionCarouselView: View {
                         Image(session.imageName)
                             .resizable()
                             .aspectRatio(1, contentMode: .fill)
-                            .frame(width: 80, height: 80)
+                            .frame(width: 85, height: 85)
                             .clipShape(RoundedRectangle(cornerRadius: 12))
                             .padding(.trailing, 12)
                         VStack(alignment: .leading, spacing: 6) {
@@ -84,7 +84,7 @@ struct SessionCarouselView: View {
                                 .font(.caption)
                                 .foregroundColor(.gray)
                         }
-                        .frame(height: 100)
+                        .frame(height: 110)
                         Spacer()
                     }
                     .padding()
@@ -116,10 +116,12 @@ struct SessionCarouselView: View {
 struct SessionView: View {
     @ObservedObject var profileData: ProfileData
     @Namespace private var tabAnimation
-    @State private var innerTab: Int = 0 // 0: 글쓰기 세션, 1: 오늘의 한마디
-    @State private var selectedSession: Int = 0 // 캐러셀 인덱스
-    @State private var bgImageId: Int = 0 // 배경 이미지 페이드용
+    @State private var selectedSession: Int = 0
+    @State private var previousSession: Int = 0
+    @State private var bgImageId: Int = 0
     @State private var showModeSetting = false
+    @Binding var selectedTab: Int
+    @State private var isFading: Bool = false
 
     let profileImage: Image? = nil
 
@@ -151,99 +153,100 @@ struct SessionView: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            // 상단 프로필 & 탭
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 12) {
-                    if let data = profileData.imageData, let uiImage = UIImage(data: data) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(width: 44, height: 44)
-                            .clipShape(Circle())
-                    } else {
-                        ZStack {
-                            Circle()
-                                .fill(Color(.systemGray4))
-                                .frame(width: 44, height: 44)
-                            Image(systemName: "person.fill")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 24, height: 24)
-                                .foregroundColor(.white)
-                        }
-                    }
-                    Text(profileData.nickname)
-                        .font(.headline)
-                        .fontWeight(.bold)
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.bottom, 0)
-                .background(Color.white)
-
-                // 탭바
-                HStack(spacing: 0) {
-                    ForEach(0..<2) { idx in
-                        Button(action: {
-                            withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                                innerTab = idx
-                            }
-                        }) {
-                            VStack(spacing: 12) {
-                                ZStack {
-                                    // 선택된 스타일
-                                    Text(idx == 0 ? "글쓰기 세션" : "오늘의 한마디")
-                                        .font(.system(size: 18, weight: .bold))
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.black)
-                                        .opacity(innerTab == idx ? 1 : 0)
-                                        .animation(.easeInOut(duration: 0.18), value: innerTab)
-                                    // 비선택 스타일
-                                    Text(idx == 0 ? "글쓰기 세션" : "오늘의 한마디")
-                                        .font(.system(size: 18, weight: .regular))
-                                        .fontWeight(.regular)
-                                        .foregroundColor(.gray)
-                                        .opacity(innerTab == idx ? 0 : 1)
-                                        .animation(.easeInOut(duration: 0.18), value: innerTab)
-                                }
-                                // 밑줄 인디케이터
-                                ZStack {
-                                    if innerTab == idx {
-                                        Rectangle()
-                                            .frame(height: 3)
-                                            .foregroundColor(.black)
-                                            .matchedGeometryEffect(id: "tabIndicator", in: tabAnimation)
-                                    } else {
-                                        Color.clear.frame(height: 3)
-                                    }
-                                }
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                    }
-                }
-                .padding(.top, 24)
-                .padding(.horizontal, 20)
-                .background(Color.white)
+        ZStack {
+            ForEach(0..<sessions.count, id: \.self) { idx in
+                LoopingVideoPlayer(videoName: sessions[idx].backgroundImage)
+                    .ignoresSafeArea()
+                    .opacity(selectedSession == idx ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.5), value: selectedSession)
             }
-            .padding(.top)
+            Color.black.opacity(0.5)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // 상단 프로필 전체를 Button으로 감싸기
+                Button(action: {
+                    selectedTab = 3
+                }) {
+                    HStack(spacing: 12) {
+                        if let data = profileData.imageData, let uiImage = UIImage(data: data) {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .aspectRatio(contentMode: .fill)
+                                .frame(width: 44, height: 44)
+                                .clipShape(Circle())
+                        } else {
+                            ZStack {
+                                Circle()
+                                    .fill(Color(.systemGray4))
+                                    .frame(width: 44, height: 44)
+                                Image(systemName: "person.fill")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 24, height: 24)
+                                    .foregroundColor(.white)
+                            }
+                        }
+                        Text(profileData.nickname)
+                            .font(.headline)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 24)
+                    .padding(.bottom, 12)
+                }
 
-            // 본문
-            SessionMainView(
-                sessions: sessions,
-                innerTab: innerTab,
-                selectedSession: $selectedSession,
-                showModeSetting: $showModeSetting
-            )
+                // 세션 캐러셀
+                SessionCarouselView(sessions: sessions, selectedSession: $selectedSession)
+                    .padding(.top, 20)
+                    .onChange(of: selectedSession) { oldValue, newValue in
+                        previousSession = oldValue
+                        isFading = true
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            isFading = false
+                            previousSession = newValue
+                        }
+                    }
+
+                // 가이드 메시지
+                Text(sessions[selectedSession].guide)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.white)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                    .padding(.top, 40)
+
+                // 시작하기 버튼
+                Button(action: {
+                    showModeSetting = true
+                }) {
+                    Text("시작하기")
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(width: 180, height: 180)
+                        .background(
+                            Circle()
+                                .fill(Color.orange)
+                                .opacity(0.85)
+                        )
+                }
+                .padding(.top, 80)
+                .padding(.bottom, 40)
+                Spacer()
+            }
         }
-        .edgesIgnoringSafeArea(.bottom)
+        .fullScreenCover(isPresented: $showModeSetting) {
+            SessionTimerView(duration: (selectedSession == 0 ? 180 : selectedSession == 1 ? 300 : 420))
+        }
     }
 }
 
 #Preview {
     SessionView(
-        profileData: ProfileData()
+        profileData: ProfileData(),
+        selectedTab: .constant(0)
     )
 }
 
@@ -258,42 +261,5 @@ class ProfileData: ObservableObject {
     init() {
         self.nickname = UserDefaults.standard.string(forKey: "nickname") ?? "Letgo"
         self.imageData = UserDefaults.standard.data(forKey: "profileImage")
-    }
-}
-
-struct SessionMainView: View {
-    let sessions: [SessionInfo]
-    let innerTab: Int
-    @Binding var selectedSession: Int
-    @Binding var showModeSetting: Bool
-
-    var body: some View {
-        ZStack {
-            ZStack {
-                ForEach(0..<sessions.count, id: \.self) { idx in
-                    if innerTab == 0 && selectedSession == idx {
-                        LoopingVideoPlayer(videoName: sessions[idx].backgroundImage)
-                            .ignoresSafeArea()
-                            .transition(.opacity)
-                            .id(idx)
-                    }
-                }
-                Color.black.opacity(0.5)
-            }
-            .animation(.easeInOut(duration: 0.4), value: selectedSession)
-            .ignoresSafeArea()
-
-            if innerTab == 0 {
-                ScrollView {
-                    SessionContentView(
-                        sessions: sessions,
-                        selectedSession: $selectedSession,
-                        showModeSetting: $showModeSetting
-                    )
-                }
-            } else {
-                OneLineView()
-            }
-        }
     }
 }

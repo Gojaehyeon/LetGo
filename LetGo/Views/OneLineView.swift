@@ -16,8 +16,26 @@ struct OneLineView: View {
     }
     
     var body: some View {
+        // 상단 전체보기 영역
+            ZStack(alignment: .top) {
+                Rectangle()
+                    .fill(Color.white)
+                    .frame(height: 56)
+                HStack {
+                    Text("오늘의 한마디")
+                        .font(.system(size: 22, weight: .bold))
+                        .padding(.leading, 20)
+                    Spacer()
+                }
+                .padding(.top, 16)
+                .padding(.bottom, 8)
+            }
+        Rectangle()
+            .frame(height: 1)
+            .foregroundColor(.gray.opacity(0.3))
+        Spacer()
         ZStack(alignment: .bottom) {
-            Color(.systemGray6).ignoresSafeArea()
+            Color(.white).ignoresSafeArea()
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(spacing: 0) {
@@ -26,12 +44,20 @@ struct OneLineView: View {
                                 Spacer()
                                 VStack(alignment: .trailing, spacing: 2) {
                                     Text(writing.content)
+                                        .font(.system(size: 16, weight: .semibold))
                                         .padding(.horizontal, 16)
                                         .padding(.vertical, 10)
-                                        .background(Color(.systemGray4))
-                                        .foregroundColor(.black)
+                                        .background(Color.orange.opacity(0.7))
+                                        .foregroundColor(.white)
                                         .cornerRadius(18)
                                         .id(writing.id)
+                                        .contextMenu {
+                                            Button(role: .destructive) {
+                                                modelContext.delete(writing)
+                                            } label: {
+                                                Label("삭제", systemImage: "trash")
+                                            }
+                                        }
                                     Text(dateFormatter.string(from: writing.date))
                                         .font(.caption2)
                                         .foregroundColor(.gray)
@@ -42,7 +68,7 @@ struct OneLineView: View {
                             .padding(.horizontal, 12)
                         }
                     }
-                    .padding(.top, 20)
+//                    .padding(.top, 20)
                     .padding(.bottom, 80)
                 }
                 .onChange(of: oneLines.count) { _ in
@@ -63,7 +89,7 @@ struct OneLineView: View {
                     .cornerRadius(20)
                     .focused($isTextFieldFocused)
                     .disabled(sentToday)
-                    .foregroundColor(sentToday ? .gray : .white)
+                    .foregroundColor(sentToday ? .gray : .black)
                     .overlay(
                         Group {
                             if sentToday {
@@ -92,7 +118,7 @@ struct OneLineView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(Color.clear)
-            .padding(.bottom, keyboardHeight > 0 ? keyboardHeight : 80)
+            .padding(.bottom, keyboardHeight > 0 ? min(keyboardHeight, 350) : 90)
             .animation(.easeInOut(duration: 0.2), value: keyboardHeight)
 
         }

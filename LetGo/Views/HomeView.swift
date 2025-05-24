@@ -31,7 +31,6 @@ struct HomeView: View {
                 Rectangle()
                     .frame(height: 1)
                     .foregroundColor(.gray.opacity(0.3))
-//                    .shadow(color: Color.black.opacity(0.08), radius: 8, y: 2)
 
 
                 // 본문

@@ -42,7 +42,7 @@ struct WritingCard: View {
                 .foregroundColor(.gray)
             Rectangle()
                 .frame(height: 1)
-                .foregroundColor(.gray.opacity(0.3))
+                .foregroundColor(.gray.opacity(0.18))
                 .padding(.top, 12)
             
         }
