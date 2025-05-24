@@ -115,9 +115,8 @@ struct SessionCarouselView: View {
 
 struct SessionView: View {
     @ObservedObject var profileData: ProfileData
-    @Binding var selectedTab: Int
     @Namespace private var tabAnimation
-    @State private var selectedTabInner: Int = 0 // 0: 글쓰기 세션, 1: 오늘의 한마디
+    @State private var selectedTab: Int = 0 // 0: 글쓰기 세션, 1: 오늘의 한마디
     @State private var selectedSession: Int = 0 // 캐러셀 인덱스
     @State private var bgImageId: Int = 0 // 배경 이미지 페이드용
     @State private var showModeSetting = false
@@ -182,10 +181,6 @@ struct SessionView: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 0)
                 .background(Color.white)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    selectedTab = 2
-                }
 
                 // 탭바
                 HStack(spacing: 0) {
@@ -248,8 +243,7 @@ struct SessionView: View {
 
 #Preview {
     SessionView(
-        profileData: ProfileData(),
-        selectedTab: .constant(0)
+        profileData: ProfileData()
     )
 }
 

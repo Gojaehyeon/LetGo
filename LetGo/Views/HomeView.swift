@@ -4,7 +4,6 @@ import SwiftData
 struct HomeView: View {
     @ObservedObject var profileData: ProfileData
     @Environment(\.modelContext) private var modelContext
-    @Binding var selectedTab: Int
     @Query(sort: [SortDescriptor(\Writing.date, order: .reverse)]) var writings: [Writing]
     
     var body: some View {
@@ -41,10 +40,6 @@ struct HomeView: View {
                     .padding(.horizontal, 20)
                     .padding(.bottom, 0)
                     .background(Color.white)
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        selectedTab = 2
-                    }
                 }
                 .padding(.top)
                 .padding(.bottom, 24)
@@ -81,7 +76,7 @@ struct HomeView: View {
                     .padding(.top, 12)
                     .padding(.bottom, 24)
                 }
-                .background(Color(.systemGray5))
+                .background(Color.white)
             }
         }
     }
