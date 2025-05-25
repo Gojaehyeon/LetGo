@@ -115,9 +115,7 @@ struct WritingDetailView: View {
             }
             Button("편집") {
                 onClose()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
-                    selectedEditingWriting = writing
-                }
+                selectedEditingWriting = writing
             }
             Button("취소", role: .cancel) {}
         }
