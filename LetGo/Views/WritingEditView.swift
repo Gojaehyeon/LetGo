@@ -7,6 +7,8 @@ struct WritingEditView: View {
     @State private var title: String
     @State private var content: String
     @State private var showCancelDialog = false
+    @State private var keyboardHeight: CGFloat = 0
+    @FocusState private var isContentFocused: Bool
     var onSave: (() -> Void)? = nil
 
     init(writing: Writing, onSave: (() -> Void)? = nil) {
@@ -23,7 +25,10 @@ struct WritingEditView: View {
                 HStack {
                     Button(action: { 
                         if title == writing.title && content == writing.content {
-                            onSave?()
+                            isContentFocused = false
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                onSave?()
+                            }
                         } else {
                             showCancelDialog = true
                         }
@@ -39,8 +44,11 @@ struct WritingEditView: View {
                         writing.title = title
                         writing.content = content
                         try? modelContext.save()
-                        onSave?()
-                        dismiss()
+                        isContentFocused = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                            onSave?()
+                            dismiss()
+                        }
                     }) {
                         Text("등록")
                             .font(.system(size: 18, weight: .semibold))
@@ -87,16 +95,49 @@ struct WritingEditView: View {
                     .padding(.horizontal, 16)
                     .padding(.top, 14)
                     .background(Color.clear)
+                    .focused($isContentFocused)
             }
-            .frame(minHeight: 180, maxHeight: 260)
+            .frame(minHeight: 400, maxHeight: UIScreen.main.bounds.height - keyboardHeight - 200)
             .padding(.horizontal, 0)
             Spacer()
         }
         .background(Color.white.ignoresSafeArea())
         .confirmationDialog("작성중인 글을 취소하시겠습니까? 수정사항은 저장되지 않습니다.", isPresented: $showCancelDialog, titleVisibility: .visible) {
-            Button("작성취소", role: .destructive) { onSave?() }
+            Button("작성취소", role: .destructive) { 
+                isContentFocused = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    onSave?()
+                }
+            }
             Button("취소", role: .cancel) {}
         }
+        .onAppear {
+            subscribeToKeyboardNotifications()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                isContentFocused = true
+            }
+        }
+        .onDisappear {
+            unsubscribeFromKeyboardNotifications()
+        }
+    }
+    
+    // MARK: - Keyboard Handling
+    func subscribeToKeyboardNotifications() {
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillChangeFrameNotification, object: nil, queue: .main) { notif in
+            if let frame = notif.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                let height = UIScreen.main.bounds.height - frame.origin.y
+                keyboardHeight = max(0, height)
+            }
+        }
+        NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+            keyboardHeight = 0
+        }
+    }
+    
+    func unsubscribeFromKeyboardNotifications() {
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
     }
 }
 

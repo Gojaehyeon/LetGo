@@ -42,7 +42,10 @@ struct WritingCard: View {
                         .rotationEffect(.degrees(90))
                         .font(.system(size: 19, weight: .medium))
                         .foregroundColor(.gray)
+                        .frame(width: 24, height: 24)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(PlainButtonStyle())
                 .confirmationDialog("", isPresented: $showActionSheet, titleVisibility: .hidden) {
                     Button("삭제", role: .destructive) {
                         onDelete?(writing)

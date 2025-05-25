@@ -3,7 +3,6 @@ import SwiftData
 
 enum HomeFilter: String, CaseIterable {
     case all = "전체보기"
-    case oneLine = "오늘의 한마디"
     case liked = "좋아요 표시한 항목"
 }
 
@@ -21,11 +20,9 @@ struct HomeView: View {
     var filteredWritings: [Writing] {
         switch selectedFilter {
         case .all:
-            return writings
-        case .oneLine:
-            return writings.filter { $0.writingType == .oneLine }
+            return writings.filter { $0.writingType != .oneLine }
         case .liked:
-            return writings.filter { $0.isLiked }
+            return writings.filter { $0.isLiked && $0.writingType != .oneLine }
         }
     }
     
@@ -86,7 +83,7 @@ struct HomeView: View {
                     }
                     .id(refreshID)
                     .padding(.top, 12)
-                    .padding(.bottom, 24)
+                    .padding(.bottom, 60)
                 }
             }
             // WritingDetailView 오버레이

@@ -11,9 +11,6 @@ struct OneLineView: View {
     var oneLines: [Writing] {
         allWritings.filter { $0.type == WritingType.oneLine.rawValue }
     }
-    var sentToday: Bool {
-        oneLines.contains { Calendar.current.isDateInToday($0.date) }
-    }
     
     var body: some View {
         // 상단 전체보기 영역
@@ -68,7 +65,6 @@ struct OneLineView: View {
                             .padding(.horizontal, 12)
                         }
                     }
-//                    .padding(.top, 20)
                     .padding(.bottom, 80)
                 }
                 .onChange(of: oneLines.count) { _ in
@@ -81,28 +77,17 @@ struct OneLineView: View {
             }
             // 입력창 & 전송 버튼 (항상 하단에 고정)
             HStack(spacing: 8) {
-                TextField(sentToday ? "" : "오늘의 한마디를 입력하세요", text: $oneLineText)
+                TextField("오늘의 한마디를 입력하세요", text: $oneLineText)
                     .textFieldStyle(PlainTextFieldStyle())
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
                     .background(Color(.systemGray5))
                     .cornerRadius(20)
                     .focused($isTextFieldFocused)
-                    .disabled(sentToday)
-                    .foregroundColor(sentToday ? .gray : .black)
-                    .overlay(
-                        Group {
-                            if sentToday {
-                                Text("하루에 한 개만 입력할 수 있어요.")
-                                    .foregroundColor(.gray)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 12)
-                            }
-                        }, alignment: .leading
-                    )
+                    .foregroundColor(.black)
                 Button(action: {
                     let trimmed = oneLineText.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !trimmed.isEmpty && !sentToday {
+                    if !trimmed.isEmpty {
                         let writing = Writing(title: "오늘의 한마디", content: trimmed, date: Date(), type: .oneLine)
                         modelContext.insert(writing)
                         oneLineText = ""
@@ -111,16 +96,14 @@ struct OneLineView: View {
                     Image(systemName: "arrow.up.circle.fill")
                         .resizable()
                         .frame(width: 36, height: 36)
-                        .foregroundColor(sentToday ? Color(.systemGray3) : Color.orange)
+                        .foregroundColor(Color.orange)
                 }
-                .disabled(sentToday)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(Color.clear)
             .padding(.bottom, keyboardHeight > 0 ? min(keyboardHeight, 350) : 90)
             .animation(.easeInOut(duration: 0.2), value: keyboardHeight)
-
         }
         .onAppear {
             subscribeToKeyboardNotifications()
