@@ -86,6 +86,7 @@ struct WritingCard: View {
                 .buttonStyle(PlainButtonStyle())
                 .sheet(isPresented: $showShareSheet) {
                     ActivityView(activityItems: [writing.content])
+                        .presentationDetents([.medium, .large])
                 }
             }
             .padding(.top, 6)

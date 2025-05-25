@@ -13,6 +13,8 @@ struct SessionTimerView: View {
     @State private var timer: Timer? = nil
     @State private var timerCancellable: AnyCancellable? = nil
     @State private var showEndAlert = false
+    @State private var title: String = ""
+    @FocusState private var isTitleFocused: Bool
 
     init(duration: Int) {
         self.duration = duration
@@ -26,7 +28,7 @@ struct SessionTimerView: View {
     var timeString: String {
         let m = remaining / 60
         let s = remaining % 60
-        return String(format: "%02d:%02d 남음", m, s)
+        return String(format: "%02d:%02d", m, s)
     }
 
     var sessionTitle: String {
@@ -48,59 +50,93 @@ struct SessionTimerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // 상단 프로그레스 바
-            ZStack(alignment: .leading) {
-                Rectangle()
-                    .fill(Color(.systemGray5))
-                    .frame(height: 28)
-                Rectangle()
-                    .fill(Color.blue)
-                    .frame(width: UIScreen.main.bounds.width * progress, height: 28)
-                    .animation(.linear(duration: 0.5), value: remaining)
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 0))
-            .padding(.bottom, 0)
-
-            // 남은 시간 + 작성 완료 버튼
-            HStack {
-                Text(timeString)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(.gray)
-                Spacer()
-                Button(action: { showEndAlert = true }) {
-                    Text("작성 완료")
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(.blue)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
+            // 상단 주황색 프로그레스 바
+            GeometryReader { geometry in
+                VStack(spacing: 0) {
+                    ZStack(alignment: .leading) {
+                        // 배경 바
+                        Rectangle()
+                            .fill(Color.orange.opacity(0.3))
+                            .frame(height: 16)
+                        
+                        // 진행 바
+                        Rectangle()
+                            .fill(remaining <= 30 ? Color.red : Color.orange)
+                            .frame(width: geometry.size.width * progress, height: 16)
+                    }
+                    .frame(height: 16)
+                    .frame(maxWidth: .infinity)
                 }
             }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 8)
-            .background(Color(.systemGray5))
-
-            // 텍스트 입력 영역
-            ZStack(alignment: .topLeading) {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                TextEditor(text: $text)
-                    .font(.system(size: 18))
-                    .padding(12)
-                    .focused($isTextFocused)
-                    .background(Color.clear)
-                    .cornerRadius(16)
+            .frame(height: 16)
+            // 남은 시간 & 등록 버튼
+            ZStack {
+                Text(timeString)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(remaining <= 30 ? .red : .black)
+                HStack {
+                    Spacer()
+                    Button(action: { showEndAlert = true }) {
+                        Text("등록")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundColor(.orange)
+                    }
+                    .padding(.trailing, 20)
+                }
             }
-            .frame(height: 320)
-            .padding(.horizontal, 16)
-            .padding(.top, 18)
-
+            .padding(.vertical, 12)
+            Divider()
+            // 제목 입력란 (placeholder 분리)
+            ZStack(alignment: .leading) {
+                if title.isEmpty {
+                    Text("제목")
+                        .font(.system(size: 26, weight: .semibold))
+                        .foregroundColor(.gray)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 0)
+                }
+                TextField("", text: $title)
+                    .font(.system(size: 26, weight: .semibold))
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.leading)
+                    .padding(.top, 24)
+                    .padding(.bottom, 20)
+                    .padding(.horizontal, 16)
+                    .focused($isTitleFocused)
+                    .onSubmit {
+                        isTitleFocused = false
+                        isTextFocused = true
+                    }
+            }
+            .padding(.top, 0)
+            Divider()
+                .padding(.horizontal, 16)
+                .padding(.bottom, 0)
+            // 본문 입력란
+            ZStack(alignment: .topLeading) {
+                if text.isEmpty {
+                    Text("잘 써야 한다는 부담 없이 자유롭게 적어보세요!")
+                        .foregroundColor(Color(.systemGray3))
+                        .font(.system(size: 16))
+                        .padding(.horizontal, 20)
+                        .padding(.top, 22)
+                }
+                TextEditor(text: $text)
+                    .font(.system(size: 16))
+                    .lineSpacing(5)
+                    .padding(.horizontal, 14)
+                    .padding(.top, 14)
+                    .background(Color.clear)
+                    .focused($isTextFocused)
+                    .scrollContentBackground(.hidden)
+            }
+            .frame(minHeight: 180, maxHeight: 260)
+            .padding(.horizontal, 0)
             Spacer()
         }
-        .background(Color(.systemGray5).ignoresSafeArea())
+        .background(Color.white.ignoresSafeArea())
         .onAppear {
-            isTextFocused = true
+            isTitleFocused = true
             startTimer()
         }
         .onDisappear {
@@ -117,9 +153,10 @@ struct SessionTimerView: View {
     }
 
     func saveAndExit() {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmed.isEmpty {
-            let writing = Writing(title: sessionTitle, content: trimmed, date: Date(), type: sessionType)
+            let writing = Writing(title: trimmedTitle.isEmpty ? sessionTitle : trimmedTitle, content: trimmed, date: Date(), type: sessionType)
             modelContext.insert(writing)
         }
         presentationMode.wrappedValue.dismiss()
@@ -141,3 +178,7 @@ struct SessionTimerView: View {
             }
     }
 } 
+
+#Preview {
+    SessionTimerView(duration: 35)
+}
