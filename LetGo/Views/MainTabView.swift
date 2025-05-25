@@ -4,13 +4,14 @@ struct MainTabView: View {
     @StateObject private var profileData = ProfileData()
     @State private var selectedTab: Int = 1 // 0: 홈, 1: 세션, 2: 한마디, 3: 프로필
     @State private var isTabBarHidden: Bool = false
+    @State private var selectedWriting: Writing? = nil
 
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
                 if selectedTab == 0 {
                     NavigationStack {
-                        HomeView(profileData: profileData)
+                        HomeView(profileData: profileData, selectedWriting: $selectedWriting)
                     }
                 } else if selectedTab == 1 {
                     SessionView(profileData: profileData, selectedTab: $selectedTab, isTabBarHidden: $isTabBarHidden)
@@ -20,7 +21,16 @@ struct MainTabView: View {
                     ProfileView(profileData: profileData)
                 }
             }
-            ZStack {
+            if let writing = selectedWriting {
+                WritingDetailView(writing: writing, onClose: {
+                    withAnimation(.easeInOut) {
+                        selectedWriting = nil
+                    }
+                })
+                .transition(.move(edge: .trailing))
+                .zIndex(100)
+            }
+            if !isTabBarHidden && selectedWriting == nil {
                 Rectangle()
                     .fill(Color.white)
                     .frame(height: 85)

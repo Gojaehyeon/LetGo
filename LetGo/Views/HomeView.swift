@@ -13,7 +13,7 @@ struct HomeView: View {
     @Query(sort: [SortDescriptor(\Writing.date, order: .reverse)]) var writings: [Writing]
     @State private var showFilterMenu = false
     @State private var selectedFilter: HomeFilter = .all
-    @State private var selectedWriting: Writing? = nil
+    @Binding var selectedWriting: Writing?
 
     var filteredWritings: [Writing] {
         switch selectedFilter {
@@ -84,10 +84,14 @@ struct HomeView: View {
                 }
             }
             // WritingDetailView 오버레이
-            .fullScreenCover(item: $selectedWriting) { writing in
+            if let writing = selectedWriting {
                 WritingDetailView(writing: writing, onClose: {
-                    selectedWriting = nil
+                    withAnimation(.easeInOut) {
+                        selectedWriting = nil
+                    }
                 })
+                .transition(.move(edge: .trailing))
+                .zIndex(1)
             }
         }
     }
@@ -100,5 +104,5 @@ private let dateFormatter: DateFormatter = {
 }()
 
 #Preview {
-    HomeView(profileData: ProfileData())
+    HomeView(profileData: ProfileData(), selectedWriting: .constant(nil))
 } 

@@ -39,6 +39,7 @@ struct WritingCard: View {
                 }) {
                     Image(systemName: "ellipsis")
                         .rotationEffect(.degrees(90))
+                        .font(.system(size: 19, weight: .medium))
                         .foregroundColor(.gray)
                 }
                 .confirmationDialog("", isPresented: $showActionSheet, titleVisibility: .hidden) {

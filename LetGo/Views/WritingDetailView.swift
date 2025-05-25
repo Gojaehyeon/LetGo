@@ -15,20 +15,22 @@ struct WritingDetailView: View {
             HStack {
                 Button(action: onClose) {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 22, weight: .bold))
+                        .font(.system(size: 24))
                         .foregroundColor(Color(.darkGray))
+                        .padding(.leading, 10)
                 }
                 Spacer()
             }
             .padding(.top, 16)
             .padding(.leading, 8)
-            .padding(.bottom, 8)
+            .padding(.bottom, 16)
+            Divider()
             // 기존 상세 내용
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(alignment: .top, spacing: 8) {
                         Text(writing.title)
-                            .font(.system(size: 26, weight: .bold))
+                            .font(.system(size: 24, weight: .bold))
                             .foregroundColor(.black)
                             .fixedSize(horizontal: false, vertical: true)
                         Text(writing.writingType.rawValue)
@@ -44,18 +46,19 @@ struct WritingDetailView: View {
                             Image(systemName: "ellipsis")
                                 .rotationEffect(.degrees(90))
                                 .foregroundColor(.gray)
-                                .font(.system(size: 22, weight: .medium))
+                                .font(.system(size: 19, weight: .medium))
                                 .padding(.top, 12)
                         }
                     }
                     Text(writing.date.formatted(date: .long, time: .shortened))
-                        .font(.system(size: 14, weight: .regular))
+                        .font(.system(size: 13, weight: .regular))
                         .foregroundColor(.gray)
-                        .padding(.top, 2)
+                        .padding(.top, 8)
                     Divider()
                         .padding(.vertical, 14)
                     Text(writing.content)
-                        .font(.system(size: 17))
+                        .font(.system(size: 16))
+                        .lineSpacing(3)
                         .foregroundColor(.black)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.bottom, 0)
