@@ -3,14 +3,17 @@ import SwiftUI
 struct MainTabView: View {
     @StateObject private var profileData = ProfileData()
     @State private var selectedTab: Int = 1 // 0: 홈, 1: 세션, 2: 한마디, 3: 프로필
+    @State private var isTabBarHidden: Bool = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
                 if selectedTab == 0 {
-                    HomeView(profileData: profileData)
+                    NavigationStack {
+                        HomeView(profileData: profileData)
+                    }
                 } else if selectedTab == 1 {
-                    SessionView(profileData: profileData, selectedTab: $selectedTab)
+                    SessionView(profileData: profileData, selectedTab: $selectedTab, isTabBarHidden: $isTabBarHidden)
                 } else if selectedTab == 2 {
                     OneLineView()
                 } else {

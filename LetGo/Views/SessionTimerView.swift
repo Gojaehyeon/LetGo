@@ -123,7 +123,7 @@ struct SessionTimerView: View {
                 }
                 TextEditor(text: $text)
                     .font(.system(size: 16))
-                    .lineSpacing(5)
+                    .lineSpacing(3)
                     .padding(.horizontal, 14)
                     .padding(.top, 14)
                     .background(Color.clear)

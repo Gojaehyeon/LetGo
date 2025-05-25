@@ -23,9 +23,7 @@ struct WritingCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                //                Image(systemName: writing.writingType.icon)
-                //                    .foregroundColor(.blue)
-                Text(firstSentence)
+                Text(writing.title)
                     .font(.system(size: 18, weight: .bold))
                 Text(writing.writingType.rawValue)
                     .font(.caption)
@@ -40,6 +38,7 @@ struct WritingCard: View {
                     showActionSheet = true
                 }) {
                     Image(systemName: "ellipsis")
+                        .rotationEffect(.degrees(90))
                         .foregroundColor(.gray)
                 }
                 .confirmationDialog("", isPresented: $showActionSheet, titleVisibility: .hidden) {
@@ -97,9 +96,8 @@ struct WritingCard: View {
             
         }
         .background(Color(.systemBackground))
+        .contentShape(Rectangle())
         .padding(.horizontal, 4)
-//        .cornerRadius(15)
-//        .shadow(color: Color.gray.opacity(0.5), radius: 5, x: 0, y: 0)
         .onAppear {
             isLiked = writing.isLiked
         }

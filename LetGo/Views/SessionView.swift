@@ -122,6 +122,7 @@ struct SessionView: View {
     @State private var showModeSetting = false
     @Binding var selectedTab: Int
     @State private var isFading: Bool = false
+    @Binding var isTabBarHidden: Bool
 
     let profileImage: Image? = nil
 
@@ -239,6 +240,8 @@ struct SessionView: View {
         }
         .fullScreenCover(isPresented: $showModeSetting) {
             SessionTimerView(duration: (selectedSession == 0 ? 180 : selectedSession == 1 ? 300 : 420))
+                .onAppear { isTabBarHidden = true }
+                .onDisappear { isTabBarHidden = false }
         }
     }
 }
@@ -246,7 +249,8 @@ struct SessionView: View {
 #Preview {
     SessionView(
         profileData: ProfileData(),
-        selectedTab: .constant(0)
+        selectedTab: .constant(0),
+        isTabBarHidden: .constant(false)
     )
 }
 

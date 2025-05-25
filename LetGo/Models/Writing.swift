@@ -2,12 +2,13 @@ import Foundation
 import SwiftData
 
 @Model
-class Writing {
+class Writing: Identifiable {
     @Attribute var title: String
     @Attribute var content: String
     @Attribute var date: Date
     @Attribute var type: String // Store WritingType as String
     @Attribute var isLiked: Bool = false // 좋아요 여부
+    var id: ObjectIdentifier { ObjectIdentifier(self) }
     
     init(title: String, content: String, date: Date, type: WritingType) {
         self.title = title

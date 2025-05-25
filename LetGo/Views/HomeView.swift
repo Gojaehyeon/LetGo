@@ -13,6 +13,7 @@ struct HomeView: View {
     @Query(sort: [SortDescriptor(\Writing.date, order: .reverse)]) var writings: [Writing]
     @State private var showFilterMenu = false
     @State private var selectedFilter: HomeFilter = .all
+    @State private var selectedWriting: Writing? = nil
 
     var filteredWritings: [Writing] {
         switch selectedFilter {
@@ -27,8 +28,7 @@ struct HomeView: View {
     
     var body: some View {
         ZStack(alignment: .top) {
-            Color(.white).ignoresSafeArea()
-            Color.white.ignoresSafeArea(edges: .top)
+            Color(.systemBackground).ignoresSafeArea()
             VStack(spacing: 0) {
                 // 상단 전체보기 영역
                 ZStack(alignment: .top) {
@@ -59,35 +59,22 @@ struct HomeView: View {
                 Rectangle()
                     .frame(height: 1)
                     .foregroundColor(.gray.opacity(0.3))
+                    .padding(.bottom, 8)
 
 
                 // 본문
                 ScrollView {
                     VStack(spacing: 8) {
-                        ForEach(filteredWritings, id: \ .self) { writing in
-                            ZStack(alignment: .topTrailing) {
-                                WritingCard(writing: writing, onDelete: { w in
-                                    modelContext.delete(w)
-                                })
-//                                HStack(spacing: 0) {
-//                                    Button(action: {
-//                                        // 공유 액션 (임시)
-//                                    }) {
-//                                        Image(systemName: "square.and.arrow.up")
-//                                            .foregroundColor(.gray)
-//                                    }
-//                                    .padding(.trailing, 8)
-//                                    Button(action: {
-//                                        // 삭제 로직
-//                                        modelContext.delete(writing)
-//                                    }) {
-//                                        Image(systemName: "trash")
-//                                            .foregroundColor(.red)
-//                                    }
-//                                }
-//                                .padding(.top, 8)
-//                                .padding(.trailing, 12)
+                        ForEach(filteredWritings, id: \ .id) { writing in
+                            WritingCard(writing: writing, onDelete: { w in
+                                modelContext.delete(w)
+                            })
+                            .onTapGesture {
+                                withAnimation(.easeInOut) {
+                                    selectedWriting = writing
+                                }
                             }
+                            .buttonStyle(PlainButtonStyle())
                             .padding(.horizontal, 12)
                             .padding(.vertical, 4)
                         }
@@ -95,7 +82,12 @@ struct HomeView: View {
                     .padding(.top, 12)
                     .padding(.bottom, 24)
                 }
-                .background(Color.white)
+            }
+            // WritingDetailView 오버레이
+            .fullScreenCover(item: $selectedWriting) { writing in
+                WritingDetailView(writing: writing, onClose: {
+                    selectedWriting = nil
+                })
             }
         }
     }
@@ -105,4 +97,8 @@ private let dateFormatter: DateFormatter = {
     let df = DateFormatter()
     df.dateFormat = "yyyy.MM.dd"
     return df
-}() 
+}()
+
+#Preview {
+    HomeView(profileData: ProfileData())
+} 

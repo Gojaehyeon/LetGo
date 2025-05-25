@@ -1,0 +1,127 @@
+import SwiftUI
+
+struct WritingDetailView: View {
+    let writing: Writing
+    var onClose: () -> Void
+    @Environment(\.modelContext) private var modelContext
+    @State private var isLiked: Bool = false
+    @State private var showShareSheet = false
+    @State private var showActionSheet = false
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // 커스텀 Back 버튼
+            HStack {
+                Button(action: onClose) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 22, weight: .bold))
+                        .foregroundColor(Color(.darkGray))
+                }
+                Spacer()
+            }
+            .padding(.top, 16)
+            .padding(.leading, 8)
+            .padding(.bottom, 8)
+            // 기존 상세 내용
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(alignment: .top, spacing: 8) {
+                        Text(writing.title)
+                            .font(.system(size: 26, weight: .bold))
+                            .foregroundColor(.black)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(writing.writingType.rawValue)
+                            .font(.caption)
+                            .foregroundColor(.black.opacity(0.7))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(Color(.systemGray5))
+                            .cornerRadius(6)
+                            .padding(.top, 4)
+                        Spacer()
+                        Button(action: { showActionSheet = true }) {
+                            Image(systemName: "ellipsis")
+                                .rotationEffect(.degrees(90))
+                                .foregroundColor(.gray)
+                                .font(.system(size: 22, weight: .medium))
+                                .padding(.top, 12)
+                        }
+                    }
+                    Text(writing.date.formatted(date: .long, time: .shortened))
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundColor(.gray)
+                        .padding(.top, 2)
+                    Divider()
+                        .padding(.vertical, 14)
+                    Text(writing.content)
+                        .font(.system(size: 17))
+                        .foregroundColor(.black)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.bottom, 0)
+                    Spacer(minLength: 40)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 18)
+                .padding(.bottom, 32)
+            }
+            .background(Color.white.ignoresSafeArea())
+            .overlay(
+                HStack {
+                    Button(action: {
+                        isLiked.toggle()
+                        writing.isLiked = isLiked
+                        try? modelContext.save()
+                    }) {
+                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                            .foregroundColor(.pink)
+                            .font(.system(size: 28))
+                    }
+                    Spacer()
+                    Button(action: {
+                        showShareSheet = true
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 26))
+                    }
+                    .sheet(isPresented: $showShareSheet) {
+                        ActivityView(activityItems: [writing.content])
+                            .presentationDetents([.medium, .large])
+                    }
+                }
+                .padding(.horizontal, 32)
+                .padding(.bottom, 24)
+                , alignment: .bottom
+            )
+        }
+        .background(Color.white.ignoresSafeArea())
+        .onAppear {
+            isLiked = writing.isLiked
+        }
+        .confirmationDialog("", isPresented: $showActionSheet, titleVisibility: .hidden) {
+            Button("삭제", role: .destructive) {
+                modelContext.delete(writing)
+                onClose()
+            }
+            Button("편집") {
+                // 편집 기능은 추후 구현
+            }
+            Button("공유") {
+                showShareSheet = true
+            }
+            Button("취소", role: .cancel) {}
+        }
+    }
+}
+
+#Preview {
+    WritingDetailView(writing: Writing(
+        title: "이것은 제목입니다",
+        content: "이것은 본문입니다. 3분 세션동안 글을 썼습니다. 안녕하세요. 한 세줄정도까지는 여기서 보이도록 하되 그 이상을 넘어가서 몇 글자 이상 넘어가면 어떻게 할까 생각 그건 점으로 처리합니다. 하지만 여긴 상세보기니까 자세히 볼 수 있죠.",
+        date: Date(),
+        type: .threeMin
+    )) {
+        // Implementation of onClose
+    }
+}
