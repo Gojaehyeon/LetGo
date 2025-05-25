@@ -14,6 +14,8 @@ struct HomeView: View {
     @State private var showFilterMenu = false
     @State private var selectedFilter: HomeFilter = .all
     @Binding var selectedWriting: Writing?
+    @Binding var refreshID: UUID
+    @Binding var selectedEditingWriting: Writing?
 
     var filteredWritings: [Writing] {
         switch selectedFilter {
@@ -68,6 +70,8 @@ struct HomeView: View {
                         ForEach(filteredWritings, id: \ .id) { writing in
                             WritingCard(writing: writing, onDelete: { w in
                                 modelContext.delete(w)
+                            }, onEdit: {
+                                selectedEditingWriting = writing
                             })
                             .onTapGesture {
                                 withAnimation(.easeInOut) {
@@ -79,6 +83,7 @@ struct HomeView: View {
                             .padding(.vertical, 4)
                         }
                     }
+                    .id(refreshID)
                     .padding(.top, 12)
                     .padding(.bottom, 24)
                 }
@@ -89,7 +94,7 @@ struct HomeView: View {
                     withAnimation(.easeInOut) {
                         selectedWriting = nil
                     }
-                })
+                }, selectedEditingWriting: .constant(nil))
                 .transition(.move(edge: .trailing))
                 .zIndex(1)
             }
@@ -104,5 +109,5 @@ private let dateFormatter: DateFormatter = {
 }()
 
 #Preview {
-    HomeView(profileData: ProfileData(), selectedWriting: .constant(nil))
+    HomeView(profileData: ProfileData(), selectedWriting: .constant(nil), refreshID: .constant(UUID()), selectedEditingWriting: .constant(nil))
 } 

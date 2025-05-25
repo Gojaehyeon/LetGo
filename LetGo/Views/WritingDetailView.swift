@@ -4,10 +4,10 @@ struct WritingDetailView: View {
     let writing: Writing
     var onClose: () -> Void
     @Environment(\.modelContext) private var modelContext
-    @State private var isLiked: Bool = false
     @State private var showShareSheet = false
     @State private var showActionSheet = false
     @Environment(\.dismiss) private var dismiss
+    @Binding var selectedEditingWriting: Writing?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -38,7 +38,9 @@ struct WritingDetailView: View {
                             .foregroundColor(.black.opacity(0.7))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 4)
-                            .background(Color(.systemGray5))
+                            .background(
+                                (writing.writingType == .oneLine ? Color.orange : Color.blue).opacity(0.1)
+                            )
                             .cornerRadius(6)
                             .padding(.top, 4)
                         Spacer()
@@ -66,52 +68,56 @@ struct WritingDetailView: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 18)
-                .padding(.bottom, 32)
+                .padding(.bottom, 40)
             }
             .background(Color.white.ignoresSafeArea())
             .overlay(
-                HStack {
-                    Button(action: {
-                        isLiked.toggle()
-                        writing.isLiked = isLiked
-                        try? modelContext.save()
-                    }) {
-                        Image(systemName: isLiked ? "heart.fill" : "heart")
-                            .foregroundColor(.pink)
-                            .font(.system(size: 28))
+                VStack(spacing: 0) {
+                    Divider()
+                        .frame(height: 1)
+                        .background(Color.gray.opacity(0.18))
+                        .shadow(color: Color.black.opacity(0.08), radius: 8, y: -2)
+                        .padding(.bottom, 0)
+                    HStack {
+                        Button(action: {
+                            writing.isLiked.toggle()
+                            try? modelContext.save()
+                        }) {
+                            Image(systemName: writing.isLiked ? "heart.fill" : "heart")
+                                .foregroundColor(.orange)
+                                .font(.system(size: 28))
+                        }
+                        Spacer()
+                        Button(action: {
+                            showShareSheet = true
+                        }) {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.gray)
+                                .font(.system(size: 26))
+                        }
+                        .sheet(isPresented: $showShareSheet) {
+                            ActivityView(activityItems: [writing.content])
+                                .presentationDetents([.medium, .large])
+                        }
                     }
-                    Spacer()
-                    Button(action: {
-                        showShareSheet = true
-                    }) {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundColor(.gray)
-                            .font(.system(size: 26))
-                    }
-                    .sheet(isPresented: $showShareSheet) {
-                        ActivityView(activityItems: [writing.content])
-                            .presentationDetents([.medium, .large])
-                    }
+                    .padding(.horizontal, 32)
+                    .padding(.bottom, 32)
+                    .padding(.top, 8)
                 }
-                .padding(.horizontal, 32)
-                .padding(.bottom, 24)
                 , alignment: .bottom
             )
         }
         .background(Color.white.ignoresSafeArea())
-        .onAppear {
-            isLiked = writing.isLiked
-        }
         .confirmationDialog("", isPresented: $showActionSheet, titleVisibility: .hidden) {
             Button("삭제", role: .destructive) {
                 modelContext.delete(writing)
                 onClose()
             }
             Button("편집") {
-                // 편집 기능은 추후 구현
-            }
-            Button("공유") {
-                showShareSheet = true
+                onClose()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+                    selectedEditingWriting = writing
+                }
             }
             Button("취소", role: .cancel) {}
         }
@@ -124,7 +130,5 @@ struct WritingDetailView: View {
         content: "이것은 본문입니다. 3분 세션동안 글을 썼습니다. 안녕하세요. 한 세줄정도까지는 여기서 보이도록 하되 그 이상을 넘어가서 몇 글자 이상 넘어가면 어떻게 할까 생각 그건 점으로 처리합니다. 하지만 여긴 상세보기니까 자세히 볼 수 있죠.",
         date: Date(),
         type: .threeMin
-    )) {
-        // Implementation of onClose
-    }
+    ), onClose: {}, selectedEditingWriting: .constant(nil))
 }

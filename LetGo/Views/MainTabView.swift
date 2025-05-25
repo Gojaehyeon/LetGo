@@ -5,13 +5,15 @@ struct MainTabView: View {
     @State private var selectedTab: Int = 1 // 0: 홈, 1: 세션, 2: 한마디, 3: 프로필
     @State private var isTabBarHidden: Bool = false
     @State private var selectedWriting: Writing? = nil
+    @State private var selectedEditingWriting: Writing? = nil
+    @State private var refreshID = UUID()
 
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
                 if selectedTab == 0 {
                     NavigationStack {
-                        HomeView(profileData: profileData, selectedWriting: $selectedWriting)
+                        HomeView(profileData: profileData, selectedWriting: $selectedWriting, refreshID: $refreshID, selectedEditingWriting: $selectedEditingWriting)
                     }
                 } else if selectedTab == 1 {
                     SessionView(profileData: profileData, selectedTab: $selectedTab, isTabBarHidden: $isTabBarHidden)
@@ -25,10 +27,18 @@ struct MainTabView: View {
                 WritingDetailView(writing: writing, onClose: {
                     withAnimation(.easeInOut) {
                         selectedWriting = nil
+                        refreshID = UUID()
                     }
-                })
+                }, selectedEditingWriting: $selectedEditingWriting)
                 .transition(.move(edge: .trailing))
                 .zIndex(100)
+            }
+            if let editingWriting = selectedEditingWriting {
+                WritingEditView(writing: editingWriting, onSave: {
+                    selectedEditingWriting = nil
+                    selectedWriting = nil
+                    refreshID = UUID()
+                })
             }
             if !isTabBarHidden && selectedWriting == nil {
                 Rectangle()

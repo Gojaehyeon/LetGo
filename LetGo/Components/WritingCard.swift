@@ -4,6 +4,7 @@ import UIKit
 struct WritingCard: View {
     let writing: Writing
     var onDelete: ((Writing) -> Void)? = nil
+    var onEdit: (() -> Void)? = nil
     
     var firstSentence: String {
         let trimmed = writing.content.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -47,7 +48,7 @@ struct WritingCard: View {
                         onDelete?(writing)
                     }
                     Button("편집") {
-                        // 편집 기능은 추후 구현
+                        onEdit?()
                     }
                     Button("취소", role: .cancel) {}
                 }
