@@ -1,5 +1,6 @@
 import AVKit
 import SwiftUI
+import AVFoundation
 
 struct LoopingVideoPlayer: UIViewRepresentable {
     let videoName: String
@@ -242,6 +243,14 @@ struct SessionView: View {
             SessionTimerView(duration: (selectedSession == 0 ? 180 : selectedSession == 1 ? 300 : 420))
                 .onAppear { isTabBarHidden = true }
                 .onDisappear { isTabBarHidden = false }
+        }
+        .onAppear {
+            do {
+                try AVAudioSession.sharedInstance().setCategory(.ambient, options: [.mixWithOthers])
+                try AVAudioSession.sharedInstance().setActive(true)
+            } catch {
+                print("AVAudioSession 설정 실패: \(error)")
+            }
         }
     }
 }
