@@ -24,11 +24,13 @@ struct MainTabView: View {
                 }
             }
             if let writing = selectedWriting {
-                WritingDetailView(writing: writing, onClose: {
-                    withAnimation(.easeInOut) {
+                WritingDetailView(writing: writing, onClose: { withTransition in
+                    if withTransition {
+                        withAnimation(.easeInOut) { selectedWriting = nil }
+                    } else {
                         selectedWriting = nil
-                        refreshID = UUID()
                     }
+                    refreshID = UUID()
                 }, selectedEditingWriting: $selectedEditingWriting)
                 .transition(.move(edge: .trailing))
                 .zIndex(100)

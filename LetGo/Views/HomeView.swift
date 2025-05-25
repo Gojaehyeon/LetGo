@@ -16,6 +16,7 @@ struct HomeView: View {
     @Binding var selectedWriting: Writing?
     @Binding var refreshID: UUID
     @Binding var selectedEditingWriting: Writing?
+    @State private var useTransition: Bool = true
 
     var filteredWritings: [Writing] {
         switch selectedFilter {
@@ -90,12 +91,16 @@ struct HomeView: View {
             }
             // WritingDetailView 오버레이
             if let writing = selectedWriting {
-                WritingDetailView(writing: writing, onClose: {
-                    withAnimation(.easeInOut) {
+                let transition = useTransition ? AnyTransition.move(edge: .trailing) : .identity
+                WritingDetailView(writing: writing, onClose: { withTransition in
+                    if withTransition {
+                        withAnimation(.easeInOut) { selectedWriting = nil }
+                    } else {
                         selectedWriting = nil
                     }
-                }, selectedEditingWriting: .constant(nil))
-                .transition(.move(edge: .trailing))
+                    useTransition = withTransition
+                }, selectedEditingWriting: $selectedEditingWriting)
+                .transition(transition)
                 .zIndex(1)
             }
         }
