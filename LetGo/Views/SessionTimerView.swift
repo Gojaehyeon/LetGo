@@ -13,6 +13,7 @@ struct SessionTimerView: View {
     @State private var timer: Timer? = nil
     @State private var timerCancellable: AnyCancellable? = nil
     @State private var showEndAlert = false
+    @State private var showCancelDialog = false
     @State private var title: String = ""
     @FocusState private var isTitleFocused: Bool
 
@@ -50,6 +51,7 @@ struct SessionTimerView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // 상단 취소 버튼
             // 상단 주황색 프로그레스 바
             GeometryReader { geometry in
                 VStack(spacing: 0) {
@@ -74,7 +76,15 @@ struct SessionTimerView: View {
                 Text(timeString)
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundColor(remaining <= 30 ? .red : .black)
-                HStack {
+                    HStack {
+                        Button(action: {
+                            showCancelDialog = true
+                        }) {
+                            Text("취소")
+                                .font(.system(size: 18, weight: .regular))
+                                .foregroundColor(Color(.darkGray))
+                        }
+                        .padding(.leading, 20)
                     Spacer()
                     Button(action: { showEndAlert = true }) {
                         Text("등록")
@@ -149,6 +159,10 @@ struct SessionTimerView: View {
             Button("네", role: .destructive) { saveAndExit() }
         } message: {
             Text("작성한 내용이 저장됩니다.")
+        }
+        .confirmationDialog("작성을 종료하시겠습니까? 작성한 내용이 저장되지 않습니다.", isPresented: $showCancelDialog, titleVisibility: .visible) {
+            Button("작성취소", role: .destructive) { presentationMode.wrappedValue.dismiss() }
+            Button("취소", role: .cancel) {}
         }
     }
 
