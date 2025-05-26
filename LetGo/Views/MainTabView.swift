@@ -125,26 +125,32 @@ struct AnimatedPlusButton: View {
     var selectedTab: Int
     var body: some View {
         ZStack {
+            // plus.app 아이콘 (비활성화 시만 보임)
             Image(systemName: "plus.app")
                 .resizable()
                 .scaledToFit()
                 .frame(width: 26, height: 26)
-                .foregroundColor(isActive ? .clear : .gray)
+                .foregroundColor(.gray)
                 .rotationEffect(.degrees(isActive ? 90 : 0))
                 .opacity(isActive ? 0 : 1)
                 .animation(.easeInOut(duration: 0.32), value: isActive)
-            Image(systemName: "x.square.fill")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 25, height: 25)
-                .foregroundColor(
-                    isActive
-                        ? (selectedTab == 1 ? Color.white.opacity(0.8) : Color.black.opacity(0.85))
-                        : .clear
-                )
-                .rotationEffect(.degrees(isActive ? 0 : -90))
-                .opacity(isActive ? 1 : 0)
-                .animation(.easeInOut(duration: 0.32), value: isActive)
+            // x 아이콘 (활성화 시만 보임)
+            Group {
+                if selectedTab == 1 {
+                    Image("x_white")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 26, height: 26)
+                } else {
+                    Image("x_black")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 26, height: 26)
+                }
+            }
+            .rotationEffect(.degrees(isActive ? 0 : -90))
+            .opacity(isActive ? 1 : 0)
+            .animation(.easeInOut(duration: 0.32), value: isActive)
         }
         .onTapGesture {
             withAnimation {
