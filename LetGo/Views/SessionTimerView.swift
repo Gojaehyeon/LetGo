@@ -86,12 +86,13 @@ struct SessionTimerView: View {
                         }
                         .padding(.leading, 20)
                     Spacer()
-                    Button(action: { showEndAlert = true }) {
+                    Button(action: { if !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { showEndAlert = true } }) {
                         Text("등록")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.orange)
+                            .foregroundColor((!title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ? .orange : .gray)
                     }
                     .padding(.trailing, 20)
+                    .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
             .padding(.vertical, 12)
@@ -116,6 +117,16 @@ struct SessionTimerView: View {
                     .onSubmit {
                         isTitleFocused = false
                         isTextFocused = true
+                    }
+                    .onChange(of: title) { newValue in
+                        // 한글만 입력: 15자, 그 외(영어/숫자/기호/혼합): 30자
+                        let koreanOnly = newValue.range(of: "^[가-힣]+$", options: .regularExpression) != nil
+                        let maxLength = koreanOnly ? 15 : 30
+                        if newValue.count > maxLength {
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.warning)
+                            title = String(newValue.prefix(maxLength))
+                        }
                     }
             }
             .padding(.top, 0)

@@ -5,6 +5,7 @@ enum WritingType: String, CaseIterable {
     case fiveMin = "5분세션"
     case sevenMin = "7분세션"
     case oneLine = "오늘의한마디"
+    case free = "자유글쓰기"
     
     var icon: String {
         switch self {
@@ -12,6 +13,7 @@ enum WritingType: String, CaseIterable {
         case .fiveMin: return "timer"
         case .sevenMin: return "timer"
         case .oneLine: return "text.quote"
+        case .free: return "square.and.pencil"
         }
     }
 } 

@@ -73,6 +73,13 @@ struct ProfileView: View {
                 )
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 64)
+                .onChange(of: profileData.nickname) { newValue in
+                    if newValue.count > 20 {
+                        let generator = UINotificationFeedbackGenerator()
+                        generator.notificationOccurred(.warning)
+                        profileData.nickname = String(newValue.prefix(20))
+                    }
+                }
 
             Spacer()
         }

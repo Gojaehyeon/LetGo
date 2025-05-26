@@ -42,9 +42,16 @@ struct WritingEditView: View {
 
                     Spacer()
                     Button(action: {
-                        writing.title = title
-                        writing.content = content
-                        try? modelContext.save()
+                        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+                        let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmedTitle.isEmpty && !trimmedContent.isEmpty else { return }
+                        let newWriting = Writing(
+                            title: trimmedTitle,
+                            content: trimmedContent,
+                            date: Date(),
+                            type: .free
+                        )
+                        modelContext.insert(newWriting)
                         isContentFocused = false
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             onSave?()
@@ -53,9 +60,10 @@ struct WritingEditView: View {
                     }) {
                         Text("등록")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(.orange)
+                            .foregroundColor((!title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ? .orange : .gray)
                     }
                     .padding(.trailing, 20)
+                    .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
             .padding(.vertical, 18)
@@ -80,6 +88,16 @@ struct WritingEditView: View {
                     .onSubmit {
                         isTitleFocused = false
                         isContentFocused = true
+                    }
+                    .onChange(of: title) { newValue in
+                        // 한글만 입력: 15자, 그 외(영어/숫자/기호/혼합): 30자
+                        let koreanOnly = newValue.range(of: "^[가-힣]+$", options: .regularExpression) != nil
+                        let maxLength = koreanOnly ? 15 : 25
+                        if newValue.count > maxLength {
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.warning)
+                            title = String(newValue.prefix(maxLength))
+                        }
                     }
             }
             .padding(.top, 0)

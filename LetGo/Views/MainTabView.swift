@@ -73,7 +73,7 @@ struct MainTabView: View {
         .overlay(
             Group {
                 if showWriteModal {
-                    Color.black.opacity(0.05)
+                    Color.black.opacity(0.005)
                         .ignoresSafeArea()
                         .onTapGesture { showWriteModal = false }
                     VStack(spacing: 0) {
@@ -100,13 +100,13 @@ struct MainTabView: View {
                     .background(Color.white)
                     .cornerRadius(15)
                     .shadow(radius: 8)
-                    .padding(.top, 565)
-                    .transition(
-                        .asymmetric(
-                            insertion: .move(edge: .bottom).combined(with: .opacity),
-                            removal: .move(edge: .bottom).combined(with: .opacity)
-                        )
-                    )
+                    .padding(.top, 550)
+//                    .transition(
+//                        .asymmetric(
+//                            insertion: .move(edge: .bottom).combined(with: .opacity),
+//                            removal: .move(edge: .bottom).combined(with: .opacity)
+//                        )
+//                    )
                 }
             }, alignment: .center
         )
@@ -116,7 +116,7 @@ struct MainTabView: View {
                 refreshID = UUID()
             })
         }
-        .animation(.easeInOut(duration: 0.45), value: showWriteModal)
+        .animation(.easeInOut(duration: 0.3), value: showWriteModal)
     }
 }
 
