@@ -9,6 +9,7 @@ struct WritingEditView: View {
     @State private var showCancelDialog = false
     @State private var keyboardHeight: CGFloat = 0
     @FocusState private var isContentFocused: Bool
+    @FocusState private var isTitleFocused: Bool
     var onSave: (() -> Void)? = nil
 
     init(writing: Writing, onSave: (() -> Void)? = nil) {
@@ -75,12 +76,17 @@ struct WritingEditView: View {
                     .padding(.top, 24)
                     .padding(.bottom, 20)
                     .padding(.horizontal, 16)
+                    .focused($isTitleFocused)
+                    .onSubmit {
+                        isTitleFocused = false
+                        isContentFocused = true
+                    }
             }
             .padding(.top, 0)
             Divider()
                 .padding(.horizontal, 16)
                 .padding(.bottom, 0)
-            // 본문 입력란
+            // 본문 입력란 (SessionTimerView와 통일)
             ZStack(alignment: .topLeading) {
                 if content.isEmpty {
                     Text("잘 써야 한다는 부담 없이 자유롭게 적어보세요!")
@@ -91,13 +97,14 @@ struct WritingEditView: View {
                 }
                 TextEditor(text: $content)
                     .font(.system(size: 16))
-                    .lineSpacing(5)
-                    .padding(.horizontal, 16)
+                    .lineSpacing(3)
+                    .padding(.horizontal, 14)
                     .padding(.top, 14)
                     .background(Color.clear)
                     .focused($isContentFocused)
+                    .scrollContentBackground(.hidden)
             }
-            .frame(minHeight: 400, maxHeight: UIScreen.main.bounds.height - keyboardHeight - 200)
+            .frame(minHeight: 180, maxHeight: 260)
             .padding(.horizontal, 0)
             Spacer()
         }
@@ -114,7 +121,7 @@ struct WritingEditView: View {
         .onAppear {
             subscribeToKeyboardNotifications()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                isContentFocused = true
+                isTitleFocused = true
             }
         }
         .onDisappear {

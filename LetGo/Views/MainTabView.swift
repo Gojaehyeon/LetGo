@@ -89,17 +89,17 @@ struct MainTabView: View {
                                     .foregroundColor(.black)
                                 Spacer()
                                 Image(systemName: "pencil")
-                                    .font(.system(size: 18, weight: .medium))
+                                    .font(.system(size: 20, weight: .medium))
                                     .foregroundColor(.black)
                             }
-                            .padding(.horizontal, 20)
+                            .padding(.horizontal, 22)
                             .padding(.vertical, 18)
                         }
                     }
-                    .frame(width: 220)
+                    .frame(width: 160)
                     .background(Color.white)
-                    .cornerRadius(18)
-                    .shadow(radius: 16)
+                    .cornerRadius(15)
+                    .shadow(radius: 8)
                     .padding(.top, 565)
                     .transition(
                         .asymmetric(
@@ -110,7 +110,7 @@ struct MainTabView: View {
                 }
             }, alignment: .center
         )
-        .sheet(isPresented: $showWriteSheet) {
+        .fullScreenCover(isPresented: $showWriteSheet) {
             WritingEditView(writing: Writing(title: "", content: "", date: Date(), type: .threeMin), onSave: {
                 showWriteSheet = false
                 refreshID = UUID()
