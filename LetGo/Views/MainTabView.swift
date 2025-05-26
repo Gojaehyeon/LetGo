@@ -7,6 +7,8 @@ struct MainTabView: View {
     @State private var selectedWriting: Writing? = nil
     @State private var selectedEditingWriting: Writing? = nil
     @State private var refreshID = UUID()
+    @State private var showWriteModal = false
+    @State private var showWriteSheet = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -48,13 +50,15 @@ struct MainTabView: View {
                     .frame(height: 85)
                     .shadow(color: Color.black.opacity(0.08), radius: 8, y: -2)
                     .opacity(selectedTab == 1 ? 0 : 1)
-                HStack(spacing: 60) {
+                HStack(spacing: 48) {
                     TabBarItem(icon: "line.3.horizontal.circle.fill", isSelected: selectedTab == 0, isSessionView: false)
                         .offset(y: -18)
                         .onTapGesture { selectedTab = 0 }
-                    TabBarItem(icon: "plus.app.fill", isSelected: selectedTab == 1, isSessionView: selectedTab == 1)
+                    TabBarItem(icon: "play.circle", isSelected: selectedTab == 1, isSessionView: true)
                         .offset(y: -18)
                         .onTapGesture { selectedTab = 1 }
+                    AnimatedPlusButton(isActive: $showWriteModal, selectedTab: selectedTab)
+                        .offset(y: -18)
                     TabBarItem(icon: "ellipsis.bubble.fill", isSelected: selectedTab == 2, isSessionView: false)
                         .offset(y: -18)
                         .onTapGesture { selectedTab = 2 }
@@ -66,6 +70,87 @@ struct MainTabView: View {
             }
         }
         .edgesIgnoringSafeArea(.bottom)
+        .overlay(
+            Group {
+                if showWriteModal {
+                    Color.black.opacity(0.05)
+                        .ignoresSafeArea()
+                        .onTapGesture { showWriteModal = false }
+                    VStack(spacing: 0) {
+                        Button(action: {
+                            showWriteModal = false
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                                showWriteSheet = true
+                            }
+                        }) {
+                            HStack {
+                                Text("자유 글쓰기")
+                                    .font(.system(size: 17, weight: .semibold))
+                                    .foregroundColor(.black)
+                                Spacer()
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 18, weight: .medium))
+                                    .foregroundColor(.black)
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 18)
+                        }
+                    }
+                    .frame(width: 220)
+                    .background(Color.white)
+                    .cornerRadius(18)
+                    .shadow(radius: 16)
+                    .padding(.top, 565)
+                    .transition(
+                        .asymmetric(
+                            insertion: .move(edge: .bottom).combined(with: .opacity),
+                            removal: .move(edge: .bottom).combined(with: .opacity)
+                        )
+                    )
+                }
+            }, alignment: .center
+        )
+        .sheet(isPresented: $showWriteSheet) {
+            WritingEditView(writing: Writing(title: "", content: "", date: Date(), type: .threeMin), onSave: {
+                showWriteSheet = false
+                refreshID = UUID()
+            })
+        }
+        .animation(.easeInOut(duration: 0.45), value: showWriteModal)
+    }
+}
+
+struct AnimatedPlusButton: View {
+    @Binding var isActive: Bool
+    var selectedTab: Int
+    var body: some View {
+        ZStack {
+            Image(systemName: "plus.app")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 26, height: 26)
+                .foregroundColor(isActive ? .clear : .gray)
+                .rotationEffect(.degrees(isActive ? 90 : 0))
+                .opacity(isActive ? 0 : 1)
+                .animation(.easeInOut(duration: 0.32), value: isActive)
+            Image(systemName: "x.square.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 25, height: 25)
+                .foregroundColor(
+                    isActive
+                        ? (selectedTab == 1 ? Color.white.opacity(0.8) : Color.black.opacity(0.85))
+                        : .clear
+                )
+                .rotationEffect(.degrees(isActive ? 0 : -90))
+                .opacity(isActive ? 1 : 0)
+                .animation(.easeInOut(duration: 0.32), value: isActive)
+        }
+        .onTapGesture {
+            withAnimation {
+                isActive.toggle()
+            }
+        }
     }
 }
 

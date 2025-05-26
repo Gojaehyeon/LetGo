@@ -7,6 +7,7 @@ struct OneLineView: View {
     @State private var oneLineText = ""
     @State private var keyboardHeight: CGFloat = 0
     @FocusState private var isTextFieldFocused: Bool
+    @State private var showCopiedToast = false
     
     var oneLines: [Writing] {
         allWritings.filter { $0.type == WritingType.oneLine.rawValue }
@@ -19,7 +20,7 @@ struct OneLineView: View {
                     .fill(Color.white)
                     .frame(height: 56)
                 HStack {
-                    Text("오늘의 한마디")
+                    Text("생각 한마디")
                         .font(.system(size: 22, weight: .bold))
                         .padding(.leading, 20)
                     Spacer()
@@ -49,6 +50,15 @@ struct OneLineView: View {
                                         .cornerRadius(18)
                                         .id(writing.id)
                                         .contextMenu {
+                                            Button {
+                                                UIPasteboard.general.string = writing.content
+                                                showCopiedToast = true
+                                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                                    showCopiedToast = false
+                                                }
+                                            } label: {
+                                                Label("복사", systemImage: "doc.on.doc")
+                                            }
                                             Button(role: .destructive) {
                                                 modelContext.delete(writing)
                                             } label: {
@@ -77,7 +87,7 @@ struct OneLineView: View {
             }
             // 입력창 & 전송 버튼 (항상 하단에 고정)
             HStack(spacing: 8) {
-                TextField("오늘의 한마디를 입력하세요", text: $oneLineText)
+                TextField("생각 한마디를 입력하세요", text: $oneLineText)
                     .textFieldStyle(PlainTextFieldStyle())
                     .padding(.horizontal, 16)
                     .padding(.vertical, 12)
@@ -112,6 +122,22 @@ struct OneLineView: View {
             unsubscribeFromKeyboardNotifications()
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
+        .overlay(
+            Group {
+                if showCopiedToast {
+                    Text("복사되었습니다")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(Color.black.opacity(0.7))
+                        .cornerRadius(8)
+                        .transition(.opacity)
+                }
+            }
+            .animation(.easeInOut, value: showCopiedToast)
+            , alignment: .top
+        )
     }
     
     // MARK: - Keyboard Handling
