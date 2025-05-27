@@ -1,53 +1,5 @@
-import AVKit
+import MapKit
 import SwiftUI
-import AVFoundation
-
-struct LoopingVideoPlayer: UIViewRepresentable {
-    let videoName: String
-
-    func makeUIView(context: Context) -> UIView {
-        return PlayerUIView(videoName: videoName)
-    }
-
-    func updateUIView(_ uiView: UIView, context: Context) {}
-
-    class PlayerUIView: UIView {
-        private var playerLooper: AVPlayerLooper?
-        private var queuePlayer: AVQueuePlayer?
-        private var playerLayer: AVPlayerLayer?
-
-        init(videoName: String) {
-            super.init(frame: .zero)
-
-            guard let path = Bundle.main.path(forResource: videoName, ofType: "mp4") else {
-                return
-            }
-
-            let url = URL(fileURLWithPath: path)
-            let playerItem = AVPlayerItem(url: url)
-            let queuePlayer = AVQueuePlayer(playerItem: playerItem)
-            self.queuePlayer = queuePlayer
-            playerLooper = AVPlayerLooper(player: queuePlayer, templateItem: playerItem)
-
-            let playerLayer = AVPlayerLayer(player: queuePlayer)
-            playerLayer.videoGravity = .resizeAspectFill
-            playerLayer.frame = bounds
-            layer.addSublayer(playerLayer)
-            self.playerLayer = playerLayer
-
-            queuePlayer.play()
-        }
-
-        required init?(coder: NSCoder) {
-            fatalError("init(coder:) has not been implemented")
-        }
-
-        override func layoutSubviews() {
-            super.layoutSubviews()
-            playerLayer?.frame = bounds
-        }
-    }
-}
 
 struct SessionInfo {
     let imageName: String
@@ -104,13 +56,54 @@ struct SessionCarouselView: View {
             HStack(spacing: 6) {
                 ForEach(0..<sessions.count, id: \.self) { idx in
                     Capsule()
-                        .fill(selectedSession == idx ? Color.orange : Color.white)
+                        .fill(selectedSession == idx ? Color.orange : Color.secondary)
                         .frame(width: selectedSession == idx ? 20 : 12, height: 6)
                         .animation(.easeInOut(duration: 0.18), value: selectedSession)
                 }
             }
             .padding(.bottom, 1)
         }
+    }
+}
+
+// 현재 위치 지도 뷰
+struct SessionMapView: View {
+    @State private var region = MKCoordinateRegion(
+        center: CLLocationCoordinate2D(latitude: 37.5665, longitude: 126.9780),
+        span: MKCoordinateSpan(latitudeDelta: 0.005, longitudeDelta: 0.005)
+    )
+    @StateObject private var locationManager = LocationManager()
+
+    var body: some View {
+        Map(coordinateRegion: $region, showsUserLocation: true)
+            .mapStyle(.standard(elevation: .realistic, emphasis: .muted))
+            .onAppear {
+                if let location = locationManager.lastLocation {
+                    region.center = location.coordinate
+                }
+            }
+            .onReceive(locationManager.$lastLocation) { location in
+                if let location = location {
+                    region.center = location.coordinate
+                }
+            }
+            .ignoresSafeArea()
+    }
+}
+
+class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
+    private let manager = CLLocationManager()
+    @Published var lastLocation: CLLocation?
+
+    override init() {
+        super.init()
+        manager.delegate = self
+        manager.requestWhenInUseAuthorization()
+        manager.startUpdatingLocation()
+    }
+
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        lastLocation = locations.last
     }
 }
 
@@ -156,15 +149,17 @@ struct SessionView: View {
 
     var body: some View {
         ZStack {
-            ForEach(0..<sessions.count, id: \.self) { idx in
-                LoopingVideoPlayer(videoName: sessions[idx].backgroundImage)
-                    .ignoresSafeArea()
-                    .opacity(selectedSession == idx ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.5), value: selectedSession)
-            }
-            Color.black.opacity(0.5)
-                .ignoresSafeArea()
-            
+            SessionMapView()
+            RadialGradient(
+                gradient: Gradient(stops: [
+                    .init(color: Color.white.opacity(0.1), location: 0.0),
+                    .init(color: Color.white.opacity(1.0), location: 1.0)
+                ]),
+                center: .center,
+                startRadius: 0,
+                endRadius: UIScreen.main.bounds.width * 0.7
+            )
+            .ignoresSafeArea()
             VStack(spacing: 0) {
                 // 상단 프로필 전체를 Button으로 감싸기
                 Button(action: {
@@ -192,7 +187,7 @@ struct SessionView: View {
                         Text(profileData.nickname)
                             .font(.headline)
                             .fontWeight(.bold)
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
                         Spacer()
                     }
                     .padding(.horizontal, 20)
@@ -202,7 +197,7 @@ struct SessionView: View {
 
                 // 세션 캐러셀
                 SessionCarouselView(sessions: sessions, selectedSession: $selectedSession)
-                    .padding(.top, 20)
+                    .padding(.top, 10)
                     .onChange(of: selectedSession) { oldValue, newValue in
                         previousSession = oldValue
                         isFading = true
@@ -215,10 +210,10 @@ struct SessionView: View {
                 // 가이드 메시지
                 Text(sessions[selectedSession].guide)
                     .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
-                    .padding(.top, 40)
+                    .padding(.top, 30)
 
                 // 시작하기 버튼
                 Button(action: {
@@ -226,16 +221,16 @@ struct SessionView: View {
                 }) {
                     Text("시작하기")
                         .font(.system(size: 28, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(width: 180, height: 180)
+                        .foregroundColor(.black)
+                        .frame(width: 160, height: 160)
                         .background(
                             Circle()
                                 .fill(Color.orange)
                                 .opacity(0.85)
                         )
                 }
-                .padding(.top, 80)
-                .padding(.bottom, 40)
+                .padding(.top, 140)
+                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 1)
                 Spacer()
             }
         }
@@ -243,14 +238,6 @@ struct SessionView: View {
             SessionTimerView(duration: (selectedSession == 0 ? 180 : selectedSession == 1 ? 300 : 420))
                 .onAppear { isTabBarHidden = true }
                 .onDisappear { isTabBarHidden = false }
-        }
-        .onAppear {
-            do {
-                try AVAudioSession.sharedInstance().setCategory(.ambient, options: [.mixWithOthers])
-                try AVAudioSession.sharedInstance().setActive(true)
-            } catch {
-                print("AVAudioSession 설정 실패: \(error)")
-            }
         }
     }
 }

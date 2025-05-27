@@ -54,10 +54,11 @@ struct MainTabView: View {
                     TabBarItem(icon: "line.3.horizontal.circle.fill", isSelected: selectedTab == 0, isSessionView: false)
                         .offset(y: -18)
                         .onTapGesture { selectedTab = 0 }
-                    TabBarItem(icon: "play.circle", isSelected: selectedTab == 1, isSessionView: true)
+                    TabBarItem(icon: "play.circle", isSelected: selectedTab == 1, isSessionView: false)
+                        .opacity(selectedTab == 1 ? 0.85 : 1.0)
                         .offset(y: -18)
                         .onTapGesture { selectedTab = 1 }
-                    AnimatedPlusButton(isActive: $showWriteModal, selectedTab: selectedTab)
+                    AnimatedPlusButton(isActive: $showWriteModal)
                         .offset(y: -18)
                     TabBarItem(icon: "ellipsis.bubble.fill", isSelected: selectedTab == 2, isSessionView: false)
                         .offset(y: -18)
@@ -122,7 +123,6 @@ struct MainTabView: View {
 
 struct AnimatedPlusButton: View {
     @Binding var isActive: Bool
-    var selectedTab: Int
     var body: some View {
         ZStack {
             // plus.app 아이콘 (비활성화 시만 보임)
@@ -135,22 +135,13 @@ struct AnimatedPlusButton: View {
                 .opacity(isActive ? 0 : 1)
                 .animation(.easeInOut(duration: 0.32), value: isActive)
             // x 아이콘 (활성화 시만 보임)
-            Group {
-                if selectedTab == 1 {
-                    Image("x_white")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 26, height: 26)
-                } else {
-                    Image("x_black")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 26, height: 26)
-                }
-            }
-            .rotationEffect(.degrees(isActive ? 0 : -90))
-            .opacity(isActive ? 1 : 0)
-            .animation(.easeInOut(duration: 0.32), value: isActive)
+            Image("x_black")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 26, height: 26)
+                .rotationEffect(.degrees(isActive ? 0 : -90))
+                .opacity(isActive ? 1 : 0)
+                .animation(.easeInOut(duration: 0.32), value: isActive)
         }
         .onTapGesture {
             withAnimation {
