@@ -45,13 +45,9 @@ struct WritingEditView: View {
                         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
                         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !trimmedTitle.isEmpty && !trimmedContent.isEmpty else { return }
-                        let newWriting = Writing(
-                            title: trimmedTitle,
-                            content: trimmedContent,
-                            date: Date(),
-                            type: .free
-                        )
-                        modelContext.insert(newWriting)
+                        writing.title = trimmedTitle
+                        writing.content = trimmedContent
+                        try? modelContext.save()
                         isContentFocused = false
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             onSave?()

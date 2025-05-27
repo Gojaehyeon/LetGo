@@ -75,7 +75,8 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: 12) {
                 Text(profileData.nickname.isEmpty ? "닉네임" : profileData.nickname)
                     .font(.system(size: 20, weight: .bold))
-                    .padding(.bottom, 8)
+                    .padding(.bottom, 6)
+                    .padding(.top, 8)
                 HStack(spacing: 36) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("\(postCount)")
@@ -111,7 +112,6 @@ struct ProfileView: View {
         .padding(.horizontal, 32)
         Divider()
             .padding(.horizontal, 20)
-        Spacer()
 
         // 오버레이
         .fullScreenCover(isPresented: $showProfileOverlay) {
@@ -176,6 +176,55 @@ struct ProfileView: View {
                 showProfileOverlay = false
             }
         }
+
+        // --- 외부 링크 카드 리스트 ---
+        VStack(alignment: .leading, spacing: 8) {
+            ProfileLinkCard(
+                image: Image("1"),
+                title: "개발자 GO 이야기",
+                description: "세상에 필요한 앱을 만들고 싶어요.",
+                url: URL(string: "https://your-go-link.com")
+            )
+            ProfileLinkCard(
+                image: Image("2"),
+                title: "Letgo의 비전",
+                description: "글쓰기의 즐거움을 되찾을 때까지!",
+                url: URL(string: "https://your-learndry-link.com")
+            )
+            ProfileLinkCard(
+                image: Image("3"),
+                title: "끊임없이 고민하기",
+                description: "최고의 사용자 경험을 위해 노력중입니다.",
+                url: URL(string: "https://your-nfc-link.com")
+            )
+        }
+        .padding(.horizontal, 32)
+        .padding(.top, 8)
+
+        Spacer(minLength: 24)
+
+        // --- 앱 버전 및 개인정보처리방침 ---
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("App Version")
+                    .font(.system(size: 14))
+                Text("v0.0.1(beta)")
+                    .font(.system(size: 13))
+                    .foregroundColor(.gray)
+            }
+            Spacer()
+            Button(action: {
+                if let url = URL(string: "https://your-privacy-link.com") {
+                    UIApplication.shared.open(url)
+                }
+            }) {
+                Text("개인정보처리방침")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.gray)
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 16)
     }
 
     // 게시물: 세션+자유글쓰기
@@ -212,6 +261,43 @@ struct ProfileView: View {
         } else {
             return "\(count)"
         }
+    }
+}
+
+// --- 프로필 링크 카드 뷰 ---
+struct ProfileLinkCard: View {
+    let image: Image
+    let title: String
+    let description: String
+    let url: URL?
+
+    var body: some View {
+        Button(action: {
+            if let url = url {
+                UIApplication.shared.open(url)
+            }
+        }) {
+            HStack(alignment: .center, spacing: 16) {
+                image
+                    .resizable()
+                    .aspectRatio(1, contentMode: .fill)
+                    .frame(width: 70, height: 70)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(.primary)
+                    Text(description)
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.gray)
+            }
+            .padding(.vertical, 8)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
