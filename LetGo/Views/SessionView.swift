@@ -50,14 +50,14 @@ struct SessionCarouselView: View {
             }
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .frame(height: 170)
-            .padding(.bottom, 12)
+            .padding(.bottom, 4)
 
             // 인디케이터 (세션 개수만큼)
             HStack(spacing: 6) {
                 ForEach(0..<sessions.count, id: \.self) { idx in
                     Capsule()
                         .fill(selectedSession == idx ? Color.orange : Color.secondary)
-                        .frame(width: selectedSession == idx ? 20 : 12, height: 6)
+                        .frame(width: selectedSession == idx ? 18 : 10, height: 3)
                         .animation(.easeInOut(duration: 0.18), value: selectedSession)
                 }
             }
@@ -123,26 +123,26 @@ struct SessionView: View {
     let sessions: [SessionInfo] = [
         SessionInfo(
             imageName: "3min",
-            subtitle: "일상의 작은 틈에서 글 써보기",
-            title: "3 min Challenge",
+            subtitle: "일상의 작은 틈 속에서",
+            title: "3min Challenge",
             timeDesc: "3분 세션",
-            guide: "떠오르는 생각이나 감정을 빠르게 적어보아요.",
+            guide: "떠오르는 생각들을 빠르게 적어보아요.",
             backgroundImage: "bg_3min"
         ),
         SessionInfo(
             imageName: "5min",
             subtitle: "5분은 생각보다 길다",
-            title: "Mini 5min Challenge",
+            title: "5min Challenge",
             timeDesc: "5분 세션",
-            guide: "5분 동안 더 깊은 생각을 자유롭게 적어보세요.",
+            guide: "더 깊은 생각속에 더 깊이 빠져보세요.",
             backgroundImage: "bg_5min"
         ),
         SessionInfo(
             imageName: "7min",
-            subtitle: "7분은 몰입의 시작",
-            title: "Deep 7min Challenge",
+            subtitle: "진정한 몰입의 7분",
+            title: "7min Challenge",
             timeDesc: "7분 세션",
-            guide: "7분 동안 몰입해서 나만의 이야기를 써보세요.",
+            guide: "몰입해서 나만의 이야기를 써보세요.",
             backgroundImage: "bg_7min"
         )
     ]
@@ -152,7 +152,9 @@ struct SessionView: View {
             SessionMapView()
             RadialGradient(
                 gradient: Gradient(stops: [
-                    .init(color: Color.white.opacity(0.1), location: 0.0),
+                    .init(color: Color.white.opacity(0.1), location: 0.3),
+                    .init(color: Color.white.opacity(0.6), location: 0.4),
+                    .init(color: Color.white.opacity(0.8), location: 0.6),
                     .init(color: Color.white.opacity(1.0), location: 1.0)
                 ]),
                 center: .center,
@@ -220,17 +222,16 @@ struct SessionView: View {
                     showModeSetting = true
                 }) {
                     Text("시작하기")
-                        .font(.system(size: 28, weight: .bold))
+                        .font(.system(size: 27, weight: .black))
                         .foregroundColor(.black)
-                        .frame(width: 160, height: 160)
+                        .frame(width: 150, height: 150)
                         .background(
                             Circle()
                                 .fill(Color.orange)
-                                .opacity(0.85)
                         )
                 }
                 .padding(.top, 140)
-                .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 1)
+                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 1)
                 Spacer()
             }
         }

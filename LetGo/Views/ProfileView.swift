@@ -6,9 +6,9 @@ struct ProfileView: View {
     @ObservedObject var profileData: ProfileData
     @State private var showImagePicker = false
     @State private var pickerItem: PhotosPickerItem?
+    @State private var pendingImagePicker = false
     @Query(sort: [SortDescriptor(\Writing.date, order: .reverse)]) var writings: [Writing]
     @State private var showProfileOverlay = false
-    @State private var showPhotoActionSheet = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -60,18 +60,6 @@ struct ProfileView: View {
             }
             .contentShape(Rectangle())
             .onTapGesture { showProfileOverlay = true }
-            .photosPicker(isPresented: $showImagePicker, selection: $pickerItem, matching: .images)
-            .onChange(of: pickerItem) { newItem in
-                if let item = newItem {
-                    item.loadTransferable(type: Data.self) { result in
-                        if case .success(let data?) = result {
-                            DispatchQueue.main.async {
-                                profileData.imageData = data
-                            }
-                        }
-                    }
-                }
-            }
             VStack(alignment: .leading, spacing: 12) {
                 Text(profileData.nickname.isEmpty ? "닉네임" : profileData.nickname)
                     .font(.system(size: 20, weight: .bold))
@@ -147,8 +135,12 @@ struct ProfileView: View {
                             )
                             .offset(x: -6, y: -6)
                     }
-                    .onTapGesture { showPhotoActionSheet = true }
-                    .photosPicker(isPresented: $showImagePicker, selection: $pickerItem, matching: .images)
+                    .onTapGesture {
+                        showProfileOverlay = false
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            pendingImagePicker = true
+                        }
+                    }
                     VStack(spacing: 0) {
                         TextField("닉네임", text: $profileData.nickname)
                             .font(.system(size: 28, weight: .bold))
@@ -162,15 +154,6 @@ struct ProfileView: View {
                             .frame(width: 200)
                     }
                 }
-            }
-            .confirmationDialog("프로필 사진", isPresented: $showPhotoActionSheet, titleVisibility: .visible) {
-                if profileData.imageData == nil {
-                    Button("사진 추가") { showImagePicker = true }
-                } else {
-                    Button("사진 변경") { showImagePicker = true }
-                    Button("사진 삭제", role: .destructive) { profileData.imageData = nil }
-                }
-                Button("취소", role: .cancel) { /* (아무 동작 없음) */ }
             }
             .onTapGesture {
                 showProfileOverlay = false
@@ -202,6 +185,18 @@ struct ProfileView: View {
         .padding(.top, 8)
 
         Spacer(minLength: 24)
+            .photosPicker(isPresented: $pendingImagePicker, selection: $pickerItem, matching: .images)
+            .onChange(of: pickerItem) { newItem in
+                if let item = newItem {
+                    item.loadTransferable(type: Data.self) { result in
+                        if case .success(let data?) = result {
+                            DispatchQueue.main.async {
+                                profileData.imageData = data
+                            }
+                        }
+                    }
+                }
+            }
 
         // --- 앱 버전 및 개인정보처리방침 ---
         HStack {
@@ -226,6 +221,7 @@ struct ProfileView: View {
         .padding(.horizontal, 20)
         .padding(.bottom, 16)
     }
+    
 
     // 게시물: 세션+자유글쓰기
     var postCount: Int {
@@ -303,4 +299,4 @@ struct ProfileLinkCard: View {
 
 #Preview {
     ProfileView(profileData: ProfileData())
-} 
+}

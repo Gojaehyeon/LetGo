@@ -75,7 +75,7 @@ struct SessionControlSection: View {
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                     .frame(width: 190, height: 190)
-                    .background(Circle().fill(Color.orange.opacity(0.85)))
+                    .background(Circle().fill(Color.orange))
             }
             .padding(.top, 32)
             .padding(.bottom, 20)
