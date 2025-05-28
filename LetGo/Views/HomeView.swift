@@ -7,7 +7,6 @@ enum HomeFilter: String, CaseIterable {
 }
 
 struct HomeView: View {
-    @ObservedObject var profileData: ProfileData
     @Environment(\.managedObjectContext) private var context
     @FetchRequest(
         entity: Writing.entity(),
@@ -20,6 +19,8 @@ struct HomeView: View {
     @Binding var refreshID: UUID
     @Binding var selectedEditingWriting: Writing?
     @State private var useTransition: Bool = true
+    @State private var refreshCount: Int = 0
+    @State private var showCloudKitAlert: Bool = false
 
     var filteredWritings: [Writing] {
         switch selectedFilter {
@@ -90,6 +91,14 @@ struct HomeView: View {
                     .padding(.top, 12)
                     .padding(.bottom, 60)
                 }
+                .refreshable {
+                    refreshCount += 1
+                    if refreshCount % 5 == 0 {
+                        showCloudKitAlert = true
+                    }
+                    context.refreshAllObjects()
+                    refreshID = UUID()
+                }
             }
             // WritingDetailView 오버레이
             if let writing = selectedWriting {
@@ -106,6 +115,9 @@ struct HomeView: View {
                 .zIndex(1)
             }
         }
+        .alert("아이클라우드 동기화가 진행 중입니다.\n빠른 반영을 원하시면 앱을 재실행해주세요.", isPresented: $showCloudKitAlert) {
+            Button("확인", role: .cancel) { }
+        }
     }
 }
 
@@ -116,5 +128,5 @@ private let dateFormatter: DateFormatter = {
 }()
 
 #Preview {
-    HomeView(profileData: ProfileData(), selectedWriting: .constant(nil), refreshID: .constant(UUID()), selectedEditingWriting: .constant(nil))
+    HomeView(selectedWriting: .constant(nil), refreshID: .constant(UUID()), selectedEditingWriting: .constant(nil))
 } 

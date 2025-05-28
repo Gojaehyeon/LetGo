@@ -17,7 +17,7 @@ struct WritingCard: View {
     }
     
     @State private var showActionSheet = false
-    @Environment(\.modelContext) private var modelContext
+    @Environment(\.managedObjectContext) private var context
     @State private var showShareSheet = false
     @State private var isLiked: Bool = false
     
@@ -31,7 +31,9 @@ struct WritingCard: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
-                        (writing.writingType == .oneLine ? Color.orange : Color.blue).opacity(0.1)
+                        (writing.writingType == .oneLine ? Color.orange :
+                         writing.writingType == .free ? Color.blue :
+                         Color.orange).opacity(0.1)
                     )
                     .cornerRadius(4)
                 Spacer()
@@ -72,7 +74,7 @@ struct WritingCard: View {
                 Button(action: {
                     isLiked.toggle()
                     writing.isLiked = isLiked
-                    try? modelContext.save()
+                    try? context.save()
                 }) {
                     Image(systemName: isLiked ? "heart.fill" : "heart")
                         .foregroundColor(.orange)

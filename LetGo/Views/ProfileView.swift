@@ -3,7 +3,12 @@ import PhotosUI
 import CoreData
 
 struct ProfileView: View {
-    @ObservedObject var profileData: ProfileData
+    @FetchRequest(
+        entity: UserProfile.entity(),
+        sortDescriptors: [],
+        animation: .default
+    ) var profiles: FetchedResults<UserProfile>
+    @Environment(\.managedObjectContext) private var context
     @State private var showImagePicker = false
     @State private var pickerItem: PhotosPickerItem?
     @State private var pendingImagePicker = false
@@ -13,6 +18,7 @@ struct ProfileView: View {
         animation: .default
     ) var writings: FetchedResults<Writing>
     @State private var showProfileOverlay = false
+    @State private var showPhotoActionSheet = false
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -33,7 +39,7 @@ struct ProfileView: View {
             .foregroundColor(.gray.opacity(0.3))
         HStack(alignment: .center, spacing: 33) {
             ZStack(alignment: .bottomTrailing) {
-                if let data = profileData.imageData, let uiImage = UIImage(data: data) {
+                if let data = userProfile.imageData, let uiImage = UIImage(data: data) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -65,7 +71,7 @@ struct ProfileView: View {
             .contentShape(Rectangle())
             .onTapGesture { showProfileOverlay = true }
             VStack(alignment: .leading, spacing: 12) {
-                Text(profileData.nickname.isEmpty ? "닉네임" : profileData.nickname)
+                Text(((userProfile.nickname ?? "").isEmpty ? "Letgo" : (userProfile.nickname ?? "")))
                     .font(.system(size: 20, weight: .bold))
                     .padding(.bottom, 6)
                     .padding(.top, 8)
@@ -108,10 +114,13 @@ struct ProfileView: View {
         // 오버레이
         .fullScreenCover(isPresented: $showProfileOverlay) {
             ZStack {
-                Color.black.opacity(0.7).ignoresSafeArea()
+                // 배경 터치 시 오버레이 닫힘
+                Color.black.opacity(0.7)
+                    .ignoresSafeArea()
+                    .onTapGesture { showProfileOverlay = false }
                 VStack(spacing: 32) {
                     ZStack(alignment: .bottomTrailing) {
-                        if let data = profileData.imageData, let uiImage = UIImage(data: data) {
+                        if let data = userProfile.imageData, let uiImage = UIImage(data: data) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
@@ -139,28 +148,56 @@ struct ProfileView: View {
                             )
                             .offset(x: -6, y: -6)
                     }
-                    .onTapGesture {
-                        showProfileOverlay = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            pendingImagePicker = true
+                    // 프로필 이미지 터치 시: 오버레이 닫고 모달 띄움
+                    .onTapGesture { showPhotoActionSheet = true }
+                    .contextMenu {
+                        if userProfile.imageData != nil {
+                            Button(role: .destructive) {
+                                userProfile.imageData = nil
+                                try? context.save()
+                            } label: {
+                                Label("사진 삭제", systemImage: "trash")
+                            }
                         }
                     }
+                    .confirmationDialog("프로필 사진", isPresented: $showPhotoActionSheet, titleVisibility: .visible) {
+                        if userProfile.imageData == nil {
+                            Button("사진 추가") {
+                                showProfileOverlay = false
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    pendingImagePicker = true
+                                }
+                            }
+                        } else {
+                            Button("사진 변경") {
+                                showProfileOverlay = false
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                    pendingImagePicker = true
+                                }
+                            }
+                            Button("사진 삭제", role: .destructive) {
+                                userProfile.imageData = nil
+                                try? context.save()
+                            }
+                        }
+                        Button("취소", role: .cancel) {}
+                    }
                     VStack(spacing: 0) {
-                        TextField("닉네임", text: $profileData.nickname)
-                            .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.white)
-                            .multilineTextAlignment(.center)
-                            .frame(width: 200)
-                            .padding(.bottom, 8)
+                        TextField("Letgo", text: Binding(
+                            get: { userProfile.nickname ?? "" },
+                            set: { userProfile.nickname = $0; try? context.save() }
+                        ))
+                        .font(.system(size: 28, weight: .bold))
+                        .foregroundColor(.white)
+                        .multilineTextAlignment(.center)
+                        .frame(width: 200)
+                        .padding(.bottom, 8)
                         Rectangle()
                             .fill(Color.white)
                             .frame(height: 2)
                             .frame(width: 200)
                     }
                 }
-            }
-            .onTapGesture {
-                showProfileOverlay = false
             }
         }
 
@@ -195,7 +232,7 @@ struct ProfileView: View {
                     item.loadTransferable(type: Data.self) { result in
                         if case .success(let data?) = result {
                             DispatchQueue.main.async {
-                                profileData.imageData = data
+                                userProfile.imageData = data
                             }
                         }
                     }
@@ -262,6 +299,18 @@ struct ProfileView: View {
             return "\(count)"
         }
     }
+
+    var userProfile: UserProfile {
+        if let profile = profiles.first {
+            return profile
+        } else {
+            let newProfile = UserProfile(context: context)
+            newProfile.nickname = ""
+            newProfile.imageData = nil
+            try? context.save()
+            return newProfile
+        }
+    }
 }
 
 // --- 프로필 링크 카드 뷰 ---
@@ -302,5 +351,5 @@ struct ProfileLinkCard: View {
 }
 
 #Preview {
-    ProfileView(profileData: ProfileData())
+    ProfileView()
 }

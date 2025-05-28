@@ -1,5 +1,6 @@
 import MapKit
 import SwiftUI
+import CoreData
 
 struct SessionInfo {
     let imageName: String
@@ -108,7 +109,12 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 }
 
 struct SessionView: View {
-    @ObservedObject var profileData: ProfileData
+    @FetchRequest(
+        entity: UserProfile.entity(),
+        sortDescriptors: [],
+        animation: .default
+    ) var profiles: FetchedResults<UserProfile>
+    @Environment(\.managedObjectContext) private var context
     @Namespace private var tabAnimation
     @State private var selectedSession: Int = 0
     @State private var previousSession: Int = 0
@@ -118,7 +124,9 @@ struct SessionView: View {
     @State private var isFading: Bool = false
     @Binding var isTabBarHidden: Bool
 
-    let profileImage: Image? = nil
+    var userProfile: UserProfile? {
+        profiles.first
+    }
 
     let sessions: [SessionInfo] = [
         SessionInfo(
@@ -168,7 +176,7 @@ struct SessionView: View {
                     selectedTab = 3
                 }) {
                     HStack(spacing: 12) {
-                        if let data = profileData.imageData, let uiImage = UIImage(data: data) {
+                        if let data = userProfile?.imageData, let uiImage = UIImage(data: data) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
@@ -186,7 +194,7 @@ struct SessionView: View {
                                     .foregroundColor(.white)
                             }
                         }
-                        Text(profileData.nickname)
+                        Text(userProfile?.nickname ?? "Letgo")
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(.black)
@@ -210,12 +218,12 @@ struct SessionView: View {
                     }
 
                 // 가이드 메시지
-                Text(sessions[selectedSession].guide)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundColor(.black)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
-                    .padding(.top, 30)
+//                Text(sessions[selectedSession].guide)
+//                    .font(.system(size: 18, weight: .semibold))
+//                    .foregroundColor(.black)
+//                    .multilineTextAlignment(.center)
+//                    .padding(.horizontal, 40)
+//                    .padding(.top, 30)
 
                 // 시작하기 버튼
                 Button(action: {
@@ -245,22 +253,7 @@ struct SessionView: View {
 
 #Preview {
     SessionView(
-        profileData: ProfileData(),
         selectedTab: .constant(0),
         isTabBarHidden: .constant(false)
     )
-}
-
-class ProfileData: ObservableObject {
-    @Published var nickname: String {
-        didSet { UserDefaults.standard.set(nickname, forKey: "nickname") }
-    }
-    @Published var imageData: Data? {
-        didSet { UserDefaults.standard.set(imageData, forKey: "profileImage") }
-    }
-
-    init() {
-        self.nickname = UserDefaults.standard.string(forKey: "nickname") ?? "Letgo"
-        self.imageData = UserDefaults.standard.data(forKey: "profileImage")
-    }
 }

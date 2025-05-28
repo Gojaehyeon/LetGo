@@ -9,6 +9,7 @@ struct WritingDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedEditingWriting: Writing?
     @State private var offset: CGFloat = 0
+    @State private var isLiked: Bool = false
 
     var body: some View {
         ZStack {
@@ -90,10 +91,11 @@ struct WritingDetailView: View {
                             .padding(.bottom, 0)
                         HStack {
                             Button(action: {
-                                writing.isLiked.toggle()
+                                isLiked.toggle()
+                                writing.isLiked = isLiked
                                 try? context.save()
                             }) {
-                                Image(systemName: writing.isLiked ? "heart.fill" : "heart")
+                                Image(systemName: isLiked ? "heart.fill" : "heart")
                                     .foregroundColor(.orange)
                                     .font(.system(size: 28))
                             }
@@ -152,6 +154,9 @@ struct WritingDetailView: View {
                 selectedEditingWriting = writing
             }
             Button("취소", role: .cancel) {}
+        }
+        .onAppear {
+            isLiked = writing.isLiked
         }
     }
 }

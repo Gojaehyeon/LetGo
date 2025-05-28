@@ -1,8 +1,7 @@
 import SwiftUI
 
 struct MainTabView: View {
-    @StateObject private var profileData = ProfileData()
-    @State private var selectedTab: Int = 1 // 0: 홈, 1: 세션, 2: 한마디, 3: 프로필
+    @State private var selectedTab: Int = 1
     @State private var isTabBarHidden: Bool = false
     @State private var selectedWriting: Writing? = nil
     @State private var selectedEditingWriting: Writing? = nil
@@ -16,14 +15,14 @@ struct MainTabView: View {
             VStack(spacing: 0) {
                 if selectedTab == 0 {
                     NavigationStack {
-                        HomeView(profileData: profileData, selectedWriting: $selectedWriting, refreshID: $refreshID, selectedEditingWriting: $selectedEditingWriting)
+                        HomeView(selectedWriting: $selectedWriting, refreshID: $refreshID, selectedEditingWriting: $selectedEditingWriting)
                     }
                 } else if selectedTab == 1 {
-                    SessionView(profileData: profileData, selectedTab: $selectedTab, isTabBarHidden: $isTabBarHidden)
+                    SessionView(selectedTab: $selectedTab, isTabBarHidden: $isTabBarHidden)
                 } else if selectedTab == 2 {
                     OneLineView()
                 } else {
-                    ProfileView(profileData: profileData)
+                    ProfileView()
                 }
             }
             if let writing = selectedWriting {
