@@ -112,7 +112,7 @@ struct MainTabView: View {
             }, alignment: .center
         )
         .fullScreenCover(isPresented: $showWriteSheet) {
-            WritingEditView(onSave: {
+            WriteView(onSave: {
                 showWriteSheet = false
                 refreshID = UUID()
             })

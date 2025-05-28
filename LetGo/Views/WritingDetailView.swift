@@ -63,6 +63,18 @@ struct WritingDetailView: View {
                                     .padding(.top, 12)
                             }
                         }
+                        // 장소 정보
+                        HStack(spacing: 4) {
+                            Image(systemName: "mappin.and.ellipse")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray)
+                            Text(writing.address ?? "위치 정보 없음")
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundColor(.gray)
+                            Spacer()
+                        }
+                        .padding(.top, 6)
+                        .padding(.bottom, 0)
                         Text((writing.value(forKey: "date") as? Date)?.formatted(date: .long, time: .shortened) ?? "")
                             .font(.system(size: 13, weight: .regular))
                             .foregroundColor(.gray)

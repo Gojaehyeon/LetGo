@@ -12,12 +12,13 @@ public class Writing: NSManagedObject {
     @NSManaged public var date: Date
     @NSManaged public var type: String
     @NSManaged public var isLiked: Bool
+    @NSManaged public var address: String?
 
     var writingType: WritingType {
         WritingType(rawValue: type) ?? .threeMin
     }
 
-    convenience init(context: NSManagedObjectContext, title: String, content: String, date: Date, type: WritingType) {
+    convenience init(context: NSManagedObjectContext, title: String, content: String, date: Date, type: WritingType, address: String? = nil) {
         let entity = NSEntityDescription.entity(forEntityName: "Writing", in: context)!
         self.init(entity: entity, insertInto: context)
         self.title = title
@@ -25,5 +26,6 @@ public class Writing: NSManagedObject {
         self.date = date
         self.type = type.rawValue
         self.isLiked = false
+        self.address = address
     }
 } 

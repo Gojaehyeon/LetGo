@@ -8,9 +8,12 @@ struct WritingEditView: View {
     @State private var content: String
     @State private var showCancelDialog = false
     @State private var keyboardHeight: CGFloat = 0
+    @State private var isLocationEnabled: Bool = true
     @FocusState private var isContentFocused: Bool
     @FocusState private var isTitleFocused: Bool
     var onSave: (() -> Void)? = nil
+    @StateObject private var locationManager = LocationManager()
+    @State private var address: String = "위치 정보 없음"
 
     init(writing: Writing? = nil, onSave: (() -> Void)? = nil) {
         self.writing = writing
@@ -49,9 +52,10 @@ struct WritingEditView: View {
                             // 기존 글 편집
                             writing.title = trimmedTitle
                             writing.content = trimmedContent
+                            writing.address = address
                         } else {
                             // 새 글쓰기(자유 글쓰기)
-                            let newWriting = Writing(context: context, title: trimmedTitle, content: trimmedContent, date: Date(), type: .free)
+                            let newWriting = Writing(context: context, title: trimmedTitle, content: trimmedContent, date: Date(), type: .free, address: address)
                         }
                         try? context.save()
                         isContentFocused = false
@@ -104,22 +108,32 @@ struct WritingEditView: View {
             }
             .padding(.top, 0)
             Divider()
-                .padding(.horizontal, 16)
-                .padding(.bottom, 0)
-            // 본문 입력란 (SessionTimerView와 통일)
+            // Location indicator bar
+            HStack(spacing: 4) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                Text(address)
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(.gray)
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .padding(.bottom, -8)
+            // 본문 입력란 (TextEditor) – now with 20pt extra top padding
             ZStack(alignment: .topLeading) {
                 if content.isEmpty {
                     Text("잘 써야 한다는 부담 없이 자유롭게 적어보세요!")
                         .foregroundColor(Color(.systemGray3))
                         .font(.system(size: 16))
                         .padding(.horizontal, 20)
-                        .padding(.top, 22)
+                        .padding(.top, 8)
                 }
                 TextEditor(text: $content)
                     .font(.system(size: 16))
                     .lineSpacing(3)
                     .padding(.horizontal, 14)
-                    .padding(.top, 14)
                     .background(Color.clear)
                     .focused($isContentFocused)
                     .scrollContentBackground(.hidden)
@@ -142,6 +156,11 @@ struct WritingEditView: View {
             subscribeToKeyboardNotifications()
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 isTitleFocused = true
+            }
+            if let writing = writing, let savedAddress = writing.address {
+                address = savedAddress
+            } else {
+                address = locationManager.currentAddress
             }
         }
         .onDisappear {

@@ -5,6 +5,7 @@
         <attribute name="nickname" optional="YES" attributeType="String"/>
     </entity>
     <entity name="Writing" representedClassName="Writing" syncable="YES">
+        <attribute name="address" optional="YES" attributeType="String"/>
         <attribute name="content" optional="YES" attributeType="String"/>
         <attribute name="date" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <attribute name="isLiked" optional="YES" attributeType="Boolean" usesScalarValueType="YES"/>

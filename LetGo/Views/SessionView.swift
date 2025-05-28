@@ -58,7 +58,7 @@ struct SessionCarouselView: View {
                 ForEach(0..<sessions.count, id: \.self) { idx in
                     Capsule()
                         .fill(selectedSession == idx ? Color.orange : Color.secondary)
-                        .frame(width: selectedSession == idx ? 18 : 10, height: 3)
+                        .frame(width: selectedSession == idx ? 18 : 10, height: 4)
                         .animation(.easeInOut(duration: 0.18), value: selectedSession)
                 }
             }
@@ -95,6 +95,8 @@ struct SessionMapView: View {
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     @Published var lastLocation: CLLocation?
+    @Published var currentAddress: String = "위치 정보 없음"
+    private let geocoder = CLGeocoder()
 
     override init() {
         super.init()
@@ -105,6 +107,42 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
         lastLocation = locations.last
+        if let location = locations.last {
+            updateAddress(for: location)
+        }
+    }
+
+    private func updateAddress(for location: CLLocation) {
+        geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
+            guard let self = self,
+                  let placemark = placemarks?.first,
+                  error == nil else {
+                self?.currentAddress = "위치 정보 없음"
+                return
+            }
+
+            // 주소 구성요소 추출
+            var addressComponents: [String] = []
+            
+            if let locality = placemark.locality {
+                addressComponents.append(locality)
+            }
+            if let subLocality = placemark.subLocality {
+                addressComponents.append(subLocality)
+            }
+            if let thoroughfare = placemark.thoroughfare {
+                addressComponents.append(thoroughfare)
+            }
+
+            // 주소가 비어있으면 "위치 정보 없음" 표시
+            if addressComponents.isEmpty {
+                self.currentAddress = "위치 정보 없음"
+            } else {
+                // 최대 2개의 주소 구성요소만 사용
+                let address = addressComponents.prefix(2).joined(separator: " ")
+                self.currentAddress = address
+            }
+        }
     }
 }
 
@@ -123,6 +161,8 @@ struct SessionView: View {
     @Binding var selectedTab: Int
     @State private var isFading: Bool = false
     @Binding var isTabBarHidden: Bool
+    @State private var showSessionSettingSheet = false
+    @State private var isLocationEnabled: Bool = true
 
     var userProfile: UserProfile? {
         profiles.first
@@ -158,11 +198,12 @@ struct SessionView: View {
     var body: some View {
         ZStack {
             SessionMapView()
+                .offset(y: 20)
             RadialGradient(
                 gradient: Gradient(stops: [
                     .init(color: Color.white.opacity(0.1), location: 0.3),
-                    .init(color: Color.white.opacity(0.6), location: 0.4),
-                    .init(color: Color.white.opacity(0.8), location: 0.6),
+                    .init(color: Color.white.opacity(0.3), location: 0.4),
+                    .init(color: Color.white.opacity(0.6), location: 0.6),
                     .init(color: Color.white.opacity(1.0), location: 1.0)
                 ]),
                 center: .center,
@@ -238,13 +279,30 @@ struct SessionView: View {
                                 .fill(Color.orange)
                         )
                 }
-                .padding(.top, 140)
+                .padding(.top, 170)
                 .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 1)
+
+                // 세션 설정 버튼
+                Button(action: { showSessionSettingSheet = true }) {
+                    Text("글쓰기 설정")
+                        .font(.headline)
+                        .foregroundColor(.black)
+                        .padding(.horizontal, 32)
+                        .padding(.vertical, 12)
+                        .background(Capsule().fill(Color.white))
+                        .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 1)
+                }
+                .padding(.top, 44)
+                .sheet(isPresented: $showSessionSettingSheet) {
+                    ModeSettingView()
+                        .presentationDetents([.medium, .large])
+                }
+
                 Spacer()
             }
         }
         .fullScreenCover(isPresented: $showModeSetting) {
-            SessionTimerView(duration: (selectedSession == 0 ? 180 : selectedSession == 1 ? 300 : 420))
+            SessionTimerView(duration: (selectedSession == 0 ? 180 : selectedSession == 1 ? 300 : 420), isLocationEnabled: isLocationEnabled)
                 .onAppear { isTabBarHidden = true }
                 .onDisappear { isTabBarHidden = false }
         }

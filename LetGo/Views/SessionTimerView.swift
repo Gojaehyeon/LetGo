@@ -5,6 +5,7 @@ import Combine
 // 세션 타이머 및 글쓰기 화면
 struct SessionTimerView: View {
     let duration: Int // 총 세션 시간(초)
+    let isLocationEnabled: Bool
     @Environment(\.modelContext) private var modelContext
     @Environment(\.presentationMode) private var presentationMode
     @State private var remaining: Int
@@ -17,9 +18,11 @@ struct SessionTimerView: View {
     @State private var title: String = ""
     @FocusState private var isTitleFocused: Bool
     @Environment(\.managedObjectContext) private var managedObjectContext
+    @StateObject private var locationManager = LocationManager()
 
-    init(duration: Int) {
+    init(duration: Int, isLocationEnabled: Bool = true) {
         self.duration = duration
+        self.isLocationEnabled = isLocationEnabled
         _remaining = State(initialValue: duration)
     }
 
@@ -50,19 +53,23 @@ struct SessionTimerView: View {
         }
     }
 
+    var locationText: String {
+        if isLocationEnabled {
+            return locationManager.currentAddress
+        } else {
+            return "위치정보 저장이 해제되어 있습니다."
+        }
+    }
+
     var body: some View {
         VStack(spacing: 0) {
-            // 상단 취소 버튼
             // 상단 주황색 프로그레스 바
             GeometryReader { geometry in
                 VStack(spacing: 0) {
                     ZStack(alignment: .leading) {
-                        // 배경 바
                         Rectangle()
                             .fill(Color.orange.opacity(0.3))
                             .frame(height: 16)
-                        
-                        // 진행 바
                         Rectangle()
                             .fill(remaining <= 30 ? Color.red : Color.orange)
                             .frame(width: geometry.size.width * progress, height: 16)
@@ -77,15 +84,15 @@ struct SessionTimerView: View {
                 Text(timeString)
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundColor(remaining <= 30 ? .red : .black)
-                    HStack {
-                        Button(action: {
-                            showCancelDialog = true
-                        }) {
-                            Text("취소")
-                                .font(.system(size: 18, weight: .regular))
-                                .foregroundColor(Color(.darkGray))
-                        }
-                        .padding(.leading, 20)
+                HStack {
+                    Button(action: {
+                        showCancelDialog = true
+                    }) {
+                        Text("취소")
+                            .font(.system(size: 18, weight: .regular))
+                            .foregroundColor(Color(.darkGray))
+                    }
+                    .padding(.leading, 20)
                     Spacer()
                     Button(action: { if !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { showEndAlert = true } }) {
                         Text("등록")
@@ -98,7 +105,7 @@ struct SessionTimerView: View {
             }
             .padding(.vertical, 12)
             Divider()
-            // 제목 입력란 (placeholder 분리)
+            // 제목 입력란
             ZStack(alignment: .leading) {
                 if title.isEmpty {
                     Text("제목")
@@ -106,13 +113,14 @@ struct SessionTimerView: View {
                         .foregroundColor(.gray)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 0)
+                        .padding(.bottom, -8)
                 }
                 TextField("", text: $title)
                     .font(.system(size: 26, weight: .semibold))
                     .foregroundColor(.black)
                     .multilineTextAlignment(.leading)
                     .padding(.top, 24)
-                    .padding(.bottom, 20)
+                    .padding(.bottom, 14)
                     .padding(.horizontal, 16)
                     .focused($isTitleFocused)
                     .onSubmit {
@@ -120,9 +128,8 @@ struct SessionTimerView: View {
                         isTextFocused = true
                     }
                     .onChange(of: title) { newValue in
-                        // 한글만 입력: 15자, 그 외(영어/숫자/기호/혼합): 30자
                         let koreanOnly = newValue.range(of: "^[가-힣]+$", options: .regularExpression) != nil
-                        let maxLength = koreanOnly ? 15 : 30
+                        let maxLength = koreanOnly ? 15 : 25
                         if newValue.count > maxLength {
                             let generator = UINotificationFeedbackGenerator()
                             generator.notificationOccurred(.warning)
@@ -132,8 +139,20 @@ struct SessionTimerView: View {
             }
             .padding(.top, 0)
             Divider()
-                .padding(.horizontal, 16)
-                .padding(.bottom, 0)
+            // 위치 표시 바
+            HStack(spacing: 4) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(.system(size: 14))
+                    .foregroundColor(.gray)
+                Text(locationText)
+                    .font(.system(size: 14, weight: (isLocationEnabled ? .regular : .light)))
+                    .foregroundColor(.gray)
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .padding(.bottom, -8)
+
             // 본문 입력란
             ZStack(alignment: .topLeading) {
                 if text.isEmpty {
@@ -141,13 +160,12 @@ struct SessionTimerView: View {
                         .foregroundColor(Color(.systemGray3))
                         .font(.system(size: 16))
                         .padding(.horizontal, 20)
-                        .padding(.top, 22)
+                        .padding(.top, 8)
                 }
                 TextEditor(text: $text)
                     .font(.system(size: 16))
                     .lineSpacing(3)
                     .padding(.horizontal, 14)
-                    .padding(.top, 14)
                     .background(Color.clear)
                     .focused($isTextFocused)
                     .scrollContentBackground(.hidden)
@@ -182,7 +200,14 @@ struct SessionTimerView: View {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmed.isEmpty {
-            let writing = Writing(context: managedObjectContext, title: trimmedTitle.isEmpty ? sessionTitle : trimmedTitle, content: trimmed, date: Date(), type: sessionType)
+            let writing = Writing(
+                context: managedObjectContext,
+                title: trimmedTitle.isEmpty ? sessionTitle : trimmedTitle,
+                content: trimmed,
+                date: Date(),
+                type: sessionType,
+                address: locationManager.currentAddress
+            )
             managedObjectContext.insert(writing)
         }
         presentationMode.wrappedValue.dismiss()

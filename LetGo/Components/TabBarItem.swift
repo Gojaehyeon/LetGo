@@ -14,11 +14,3 @@ struct TabBarItem: View {
     }
 }
 
-#Preview {
-    HStack {
-        TabBarItem(icon: "line.3.horizontal.square", isSelected: true)
-        TabBarItem(icon: "square.and.pencil", isSelected: false)
-        TabBarItem(icon: "person.fill", isSelected: false)
-    }
-    .padding()
-} 
