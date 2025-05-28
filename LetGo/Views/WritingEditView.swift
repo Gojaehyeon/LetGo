@@ -66,7 +66,7 @@ struct WritingEditView: View {
                     }) {
                         Text("등록")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor((!title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ? .orange : .gray)
+                            .foregroundColor((!title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ? .theme : .gray)
                     }
                     .padding(.trailing, 20)
                     .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

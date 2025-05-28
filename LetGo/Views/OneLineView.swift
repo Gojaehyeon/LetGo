@@ -142,7 +142,7 @@ struct OneLineInputBar: View {
                 Image(systemName: "arrow.up.circle.fill")
                     .resizable()
                     .frame(width: 36, height: 36)
-                    .foregroundColor(Color.orange)
+                    .foregroundColor(Color.theme)
             }
         }
         .padding(.horizontal, 12)
@@ -197,7 +197,7 @@ struct OneLineRow: View {
                     .font(.system(size: 16, weight: .semibold))
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
-                    .background(Color.orange.opacity(0.7))
+                    .background(Color.theme.opacity(0.7))
                     .foregroundColor(.white)
                     .cornerRadius(18)
                     .contextMenu {

@@ -50,7 +50,7 @@ struct WritingDetailView: View {
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 4)
                                 .background(
-                                    (writing.writingType == .oneLine ? Color.orange : Color.blue).opacity(0.2)
+                                    (writing.writingType == .oneLine ? Color.theme : Color.blue).opacity(0.2)
                                 )
                                 .cornerRadius(6)
                                 .padding(.top, 4)
@@ -108,7 +108,7 @@ struct WritingDetailView: View {
                                 try? context.save()
                             }) {
                                 Image(systemName: isLiked ? "heart.fill" : "heart")
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(.theme)
                                     .font(.system(size: 28))
                             }
                             Spacer()

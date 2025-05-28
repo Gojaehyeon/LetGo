@@ -68,10 +68,10 @@ struct SessionTimerView: View {
                 VStack(spacing: 0) {
                     ZStack(alignment: .leading) {
                         Rectangle()
-                            .fill(Color.orange.opacity(0.3))
+                            .fill(Color.theme.opacity(0.3))
                             .frame(height: 16)
                         Rectangle()
-                            .fill(remaining <= 30 ? Color.red : Color.orange)
+                            .fill(remaining <= 30 ? Color.red : Color.theme)
                             .frame(width: geometry.size.width * progress, height: 16)
                     }
                     .frame(height: 16)

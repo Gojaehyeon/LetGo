@@ -31,9 +31,9 @@ struct WritingCard: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
-                        (writing.writingType == .oneLine ? Color.orange :
+                        (writing.writingType == .oneLine ? Color.theme :
                          writing.writingType == .free ? Color.blue :
-                         Color.orange).opacity(0.1)
+                         Color.theme).opacity(0.1)
                     )
                     .cornerRadius(4)
                 Spacer()
@@ -77,7 +77,7 @@ struct WritingCard: View {
                     try? context.save()
                 }) {
                     Image(systemName: isLiked ? "heart.fill" : "heart")
-                        .foregroundColor(.orange)
+                        .foregroundColor(.theme)
                         .font(.system(size: 23))
                 }
                 .buttonStyle(PlainButtonStyle())

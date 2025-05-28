@@ -57,7 +57,7 @@ struct SessionCarouselView: View {
             HStack(spacing: 6) {
                 ForEach(0..<sessions.count, id: \.self) { idx in
                     Capsule()
-                        .fill(selectedSession == idx ? Color.orange : Color.secondary)
+                        .fill(selectedSession == idx ? Color.theme : Color.secondary)
                         .frame(width: selectedSession == idx ? 18 : 10, height: 4)
                         .animation(.easeInOut(duration: 0.18), value: selectedSession)
                 }
@@ -163,6 +163,7 @@ struct SessionView: View {
     @Binding var isTabBarHidden: Bool
     @State private var showSessionSettingSheet = false
     @State private var isLocationEnabled: Bool = true
+    @AppStorage("themeColorHex") var themeColorHex: String = "#FF9500"
 
     var userProfile: UserProfile? {
         profiles.first
@@ -199,9 +200,34 @@ struct SessionView: View {
         ZStack {
             SessionMapView()
                 .offset(y: 20)
+            // 지도 중앙에 프로필 오버레이 (흰 원 + 진한 하얀 테두리)
+            ZStack {
+                Circle()
+                    .fill(Color.white)
+                    .frame(width: 55, height: 55)
+                    .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 0)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white, lineWidth: 4)
+                    )
+                if let data = userProfile?.imageData, let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 43, height: 43)
+                        .clipShape(Circle())
+                } else {
+                    Image(systemName: "person.fill")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 32, height: 32)
+                        .foregroundColor(.gray)
+                }
+            }
+            .offset(y: -45)
             RadialGradient(
                 gradient: Gradient(stops: [
-                    .init(color: Color.white.opacity(0.1), location: 0.3),
+                    .init(color: Color.white.opacity(0.2), location: 0.3),
                     .init(color: Color.white.opacity(0.3), location: 0.4),
                     .init(color: Color.white.opacity(0.6), location: 0.6),
                     .init(color: Color.white.opacity(1.0), location: 1.0)
@@ -267,20 +293,34 @@ struct SessionView: View {
 //                    .padding(.top, 30)
 
                 // 시작하기 버튼
+                let themeColor = Color(hex: themeColorHex)
+                let isDarkColor: Bool = {
+                    let uiColor = UIColor(themeColor)
+                    var red: CGFloat = 0
+                    var green: CGFloat = 0
+                    var blue: CGFloat = 0
+                    uiColor.getRed(&red, green: &green, blue: &blue, alpha: nil)
+                    // 밝기 계산 (RGB 평균)
+                    let brightness = (red + green + blue) / 3.0
+                    return brightness < 0.8  // 0.6보다 어두우면 흰색 텍스트
+                }()
+
                 Button(action: {
                     showModeSetting = true
                 }) {
                     Text("시작하기")
                         .font(.system(size: 27, weight: .bold))
-                        .foregroundColor(.black)
+                        .foregroundColor(
+                            isDarkColor ? .white : .black
+                        )
                         .frame(width: 150, height: 150)
                         .background(
                             Circle()
-                                .fill(Color.orange)
+                                .fill(Color.theme)
+                                .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 0)
                         )
                 }
-                .padding(.top, 170)
-                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 1)
+                .padding(.top, 190)
 
                 // 세션 설정 버튼
                 Button(action: { showSessionSettingSheet = true }) {
@@ -290,9 +330,9 @@ struct SessionView: View {
                         .padding(.horizontal, 32)
                         .padding(.vertical, 12)
                         .background(Capsule().fill(Color.white))
-                        .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 1)
+                        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 0)
                 }
-                .padding(.top, 44)
+                .padding(.top, 28)
                 .sheet(isPresented: $showSessionSettingSheet) {
                     ModeSettingView()
                         .presentationDetents([.medium, .large])
