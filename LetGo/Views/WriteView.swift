@@ -4,7 +4,7 @@ import Foundation
 
 struct WriteView: View {
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.modelContext) private var modelContext
+    @Environment(\.managedObjectContext) private var managedObjectContext
     
     @State private var title = ""
     @State private var content = ""
@@ -40,8 +40,8 @@ struct WriteView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("저장") {
-                        let writing = Writing(title: title, content: content, date: Date(), type: selectedType)
-                        modelContext.insert(writing)
+                        let writing = Writing(context: managedObjectContext, title: title, content: content, date: Date(), type: selectedType)
+                        managedObjectContext.insert(writing)
                         dismiss()
                     }
                 }
@@ -51,5 +51,7 @@ struct WriteView: View {
 }
 
 #Preview {
-    WriteView()
+    let context = PersistenceController.shared.container.viewContext
+    return WriteView()
+        .environment(\.managedObjectContext, context)
 } 

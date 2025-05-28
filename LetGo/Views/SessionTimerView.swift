@@ -16,6 +16,7 @@ struct SessionTimerView: View {
     @State private var showCancelDialog = false
     @State private var title: String = ""
     @FocusState private var isTitleFocused: Bool
+    @Environment(\.managedObjectContext) private var managedObjectContext
 
     init(duration: Int) {
         self.duration = duration
@@ -181,8 +182,8 @@ struct SessionTimerView: View {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmed.isEmpty {
-            let writing = Writing(title: trimmedTitle.isEmpty ? sessionTitle : trimmedTitle, content: trimmed, date: Date(), type: sessionType)
-            modelContext.insert(writing)
+            let writing = Writing(context: managedObjectContext, title: trimmedTitle.isEmpty ? sessionTitle : trimmedTitle, content: trimmed, date: Date(), type: sessionType)
+            managedObjectContext.insert(writing)
         }
         presentationMode.wrappedValue.dismiss()
     }
@@ -205,5 +206,7 @@ struct SessionTimerView: View {
 } 
 
 #Preview {
-    SessionTimerView(duration: 35)
+    let context = PersistenceController.shared.container.viewContext
+    return SessionTimerView(duration: 35)
+        .environment(\.managedObjectContext, context)
 }

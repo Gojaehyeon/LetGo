@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct WritingEditView: View {
-    var writing: Writing
-    @Environment(\.modelContext) private var modelContext
+    var writing: Writing?
+    @Environment(\.managedObjectContext) private var context
     @Environment(\.dismiss) private var dismiss
     @State private var title: String
     @State private var content: String
@@ -12,10 +12,10 @@ struct WritingEditView: View {
     @FocusState private var isTitleFocused: Bool
     var onSave: (() -> Void)? = nil
 
-    init(writing: Writing, onSave: (() -> Void)? = nil) {
+    init(writing: Writing? = nil, onSave: (() -> Void)? = nil) {
         self.writing = writing
-        self._title = State(initialValue: writing.title)
-        self._content = State(initialValue: writing.content)
+        self._title = State(initialValue: writing?.title ?? "")
+        self._content = State(initialValue: writing?.content ?? "")
         self.onSave = onSave
     }
 
@@ -25,7 +25,7 @@ struct WritingEditView: View {
             ZStack {
                 HStack {
                     Button(action: { 
-                        if title == writing.title && content == writing.content {
+                        if title == writing?.title && content == writing?.content {
                             isContentFocused = false
                             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                                 onSave?()
@@ -45,9 +45,15 @@ struct WritingEditView: View {
                         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
                         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !trimmedTitle.isEmpty && !trimmedContent.isEmpty else { return }
-                        writing.title = trimmedTitle
-                        writing.content = trimmedContent
-                        try? modelContext.save()
+                        if let writing = writing {
+                            // 기존 글 편집
+                            writing.title = trimmedTitle
+                            writing.content = trimmedContent
+                        } else {
+                            // 새 글쓰기(자유 글쓰기)
+                            let newWriting = Writing(context: context, title: trimmedTitle, content: trimmedContent, date: Date(), type: .free)
+                        }
+                        try? context.save()
                         isContentFocused = false
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             onSave?()
@@ -163,6 +169,8 @@ struct WritingEditView: View {
 }
 
 #Preview {
-    let writing = Writing(title: "샘플 제목", content: "샘플 본문입니다.", date: Date(), type: .threeMin)
-    WritingEditView(writing: writing)
+    let context = PersistenceController.shared.container.viewContext
+    let writing = Writing(context: context, title: "샘플 제목", content: "샘플 본문입니다.", date: Date(), type: .threeMin)
+    return WritingEditView(writing: writing)
+        .environment(\.managedObjectContext, context)
 } 

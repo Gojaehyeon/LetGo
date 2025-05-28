@@ -9,6 +9,7 @@ struct MainTabView: View {
     @State private var refreshID = UUID()
     @State private var showWriteModal = false
     @State private var showWriteSheet = false
+    @Environment(\.managedObjectContext) private var context
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -112,7 +113,7 @@ struct MainTabView: View {
             }, alignment: .center
         )
         .fullScreenCover(isPresented: $showWriteSheet) {
-            WritingEditView(writing: Writing(title: "", content: "", date: Date(), type: .threeMin), onSave: {
+            WritingEditView(onSave: {
                 showWriteSheet = false
                 refreshID = UUID()
             })

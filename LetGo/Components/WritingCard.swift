@@ -57,7 +57,7 @@ struct WritingCard: View {
                 }
             }
             HStack {
-                Text(writing.date.formatted(date: .abbreviated, time: .shortened))
+                Text((writing.value(forKey: "date") as? Date)?.formatted(date: .abbreviated, time: .shortened) ?? "")
                     .font(.caption)
                     .foregroundColor(.gray)
                 Spacer()
@@ -119,11 +119,9 @@ struct ActivityView: UIViewControllerRepresentable {
 }
 
 #Preview {
-    WritingCard(writing: Writing(
-        title: "샘플 제목",
-        content: "이것은 샘플 내용입니다. 글쓰기 앱의 카드 뷰를 보여주기 위한 예시입니다.",
-        date: Date(),
-        type: .oneLine
-    ))
-    .padding()
+    let context = PersistenceController.shared.container.viewContext
+    let writing = Writing(context: context, title: "샘플 제목", content: "이것은 샘플 내용입니다. 글쓰기 앱의 카드 뷰를 보여주기 위한 예시입니다.", date: Date(), type: .oneLine)
+    return WritingCard(writing: writing)
+        .environment(\.managedObjectContext, context)
+        .padding()
 } 

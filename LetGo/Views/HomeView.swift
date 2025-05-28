@@ -1,5 +1,5 @@
 import SwiftUI
-import SwiftData
+import CoreData
 
 enum HomeFilter: String, CaseIterable {
     case all = "전체보기"
@@ -8,8 +8,12 @@ enum HomeFilter: String, CaseIterable {
 
 struct HomeView: View {
     @ObservedObject var profileData: ProfileData
-    @Environment(\.modelContext) private var modelContext
-    @Query(sort: [SortDescriptor(\Writing.date, order: .reverse)]) var writings: [Writing]
+    @Environment(\.managedObjectContext) private var context
+    @FetchRequest(
+        entity: Writing.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \Writing.date, ascending: false)],
+        animation: .default
+    ) var writings: FetchedResults<Writing>
     @State private var showFilterMenu = false
     @State private var selectedFilter: HomeFilter = .all
     @Binding var selectedWriting: Writing?
@@ -65,9 +69,10 @@ struct HomeView: View {
                 // 본문
                 ScrollView {
                     VStack(spacing: 8) {
-                        ForEach(filteredWritings, id: \ .id) { writing in
+                        ForEach(filteredWritings, id: \.objectID) { writing in
                             WritingCard(writing: writing, onDelete: { w in
-                                modelContext.delete(w)
+                                context.delete(w)
+                                try? context.save()
                             }, onEdit: {
                                 selectedEditingWriting = writing
                             })

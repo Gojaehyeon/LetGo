@@ -1,13 +1,17 @@
 import SwiftUI
 import PhotosUI
-import SwiftData
+import CoreData
 
 struct ProfileView: View {
     @ObservedObject var profileData: ProfileData
     @State private var showImagePicker = false
     @State private var pickerItem: PhotosPickerItem?
     @State private var pendingImagePicker = false
-    @Query(sort: [SortDescriptor(\Writing.date, order: .reverse)]) var writings: [Writing]
+    @FetchRequest(
+        entity: Writing.entity(),
+        sortDescriptors: [NSSortDescriptor(keyPath: \Writing.date, ascending: false)],
+        animation: .default
+    ) var writings: FetchedResults<Writing>
     @State private var showProfileOverlay = false
 
     var body: some View {

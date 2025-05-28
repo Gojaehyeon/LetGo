@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import SwiftData
+import CoreData
 
 @main
 struct LetGoApp: App {
@@ -14,10 +14,11 @@ struct LetGoApp: App {
         // Force light mode
         UIView.appearance().overrideUserInterfaceStyle = .light
     }
+    let persistenceController = PersistenceController.shared
     var body: some Scene {
         WindowGroup {
             MainTabView()
-                .modelContainer(for: Writing.self)
+                .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
 }

@@ -222,7 +222,7 @@ struct SessionView: View {
                     showModeSetting = true
                 }) {
                     Text("시작하기")
-                        .font(.system(size: 27, weight: .black))
+                        .font(.system(size: 27, weight: .bold))
                         .foregroundColor(.black)
                         .frame(width: 150, height: 150)
                         .background(

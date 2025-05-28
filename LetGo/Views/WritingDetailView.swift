@@ -3,7 +3,7 @@ import SwiftUI
 struct WritingDetailView: View {
     let writing: Writing
     var onClose: (Bool) -> Void
-    @Environment(\.modelContext) private var modelContext
+    @Environment(\.managedObjectContext) private var context
     @State private var showShareSheet = false
     @State private var showActionSheet = false
     @Environment(\.dismiss) private var dismiss
@@ -62,7 +62,7 @@ struct WritingDetailView: View {
                                     .padding(.top, 12)
                             }
                         }
-                        Text(writing.date.formatted(date: .long, time: .shortened))
+                        Text((writing.value(forKey: "date") as? Date)?.formatted(date: .long, time: .shortened) ?? "")
                             .font(.system(size: 13, weight: .regular))
                             .foregroundColor(.gray)
                             .padding(.top, 8)
@@ -91,7 +91,7 @@ struct WritingDetailView: View {
                         HStack {
                             Button(action: {
                                 writing.isLiked.toggle()
-                                try? modelContext.save()
+                                try? context.save()
                             }) {
                                 Image(systemName: writing.isLiked ? "heart.fill" : "heart")
                                     .foregroundColor(.orange)
@@ -143,7 +143,8 @@ struct WritingDetailView: View {
         }
         .confirmationDialog("", isPresented: $showActionSheet, titleVisibility: .hidden) {
             Button("삭제", role: .destructive) {
-                modelContext.delete(writing)
+                context.delete(writing)
+                try? context.save()
                 onClose(false)
             }
             Button("편집") {
@@ -156,7 +157,9 @@ struct WritingDetailView: View {
 }
 
 #Preview {
+    let context = PersistenceController.shared.container.viewContext
     WritingDetailView(writing: Writing(
+        context: context,
         title: "이것은 제목입니다",
         content: "이것은 본문입니다. 3분 세션동안 글을 썼습니다. 안녕하세요. 한 세줄정도까지는 여기서 보이도록 하되 그 이상을 넘어가서 몇 글자 이상 넘어가면 어떻게 할까 생각 그건 점으로 처리합니다. 하지만 여긴 상세보기니까 자세히 볼 수 있죠.",
         date: Date(),
