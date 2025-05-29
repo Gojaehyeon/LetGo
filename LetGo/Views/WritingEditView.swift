@@ -45,24 +45,7 @@ struct WritingEditView: View {
 
                     Spacer()
                     Button(action: {
-                        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
-                        let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
-                        guard !trimmedTitle.isEmpty && !trimmedContent.isEmpty else { return }
-                        if let writing = writing {
-                            // 기존 글 편집
-                            writing.title = trimmedTitle
-                            writing.content = trimmedContent
-                            writing.address = address
-                        } else {
-                            // 새 글쓰기(자유 글쓰기)
-                            let newWriting = Writing(context: context, title: trimmedTitle, content: trimmedContent, date: Date(), type: .free, address: address)
-                        }
-                        try? context.save()
-                        isContentFocused = false
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                            onSave?()
-                            dismiss()
-                        }
+                        saveWriting()
                     }) {
                         Text(NSLocalizedString("write_register", comment: ""))
                             .font(.system(size: 18, weight: .semibold))
@@ -190,6 +173,23 @@ struct WritingEditView: View {
     func unsubscribeFromKeyboardNotifications() {
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification, object: nil)
+    }
+
+    func saveWriting() {
+        let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedTitle.isEmpty && !trimmedContent.isEmpty else { return }
+        let newWriting = Writing(
+            context: context,
+            title: trimmedTitle,
+            content: trimmedContent,
+            date: Date(),
+            type: WritingType(rawValue: writing?.type ?? "") ?? .free,
+            address: isLocationEnabled ? address : nil
+        )
+        try? context.save()
+        onSave?()
+        dismiss()
     }
 }
 

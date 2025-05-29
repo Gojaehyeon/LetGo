@@ -310,7 +310,7 @@ struct ProfileView: View {
                 Image(systemName: "globe")
                     .foregroundColor(.gray)
                 Text(NSLocalizedString("preferred_language_settings", comment: ""))
-                    .foregroundColor(.primary)
+                    .foregroundColor(.gray)
                 Spacer()
                 Image(systemName: "chevron.right")
                     .foregroundColor(.gray)

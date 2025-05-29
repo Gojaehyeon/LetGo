@@ -5,7 +5,7 @@ import Combine
 // 세션 타이머 및 글쓰기 화면
 struct SessionTimerView: View {
     let duration: Int // 총 세션 시간(초)
-    let isLocationEnabled: Bool
+    @AppStorage("isLocationEnabled") var isLocationEnabled: Bool = true
     @Environment(\.modelContext) private var modelContext
     @Environment(\.presentationMode) private var presentationMode
     @State private var remaining: Int
@@ -21,9 +21,8 @@ struct SessionTimerView: View {
     @StateObject private var locationManager = LocationManager()
     @State private var keyboardHeight: CGFloat = 0
 
-    init(duration: Int, isLocationEnabled: Bool = true) {
+    init(duration: Int) {
         self.duration = duration
-        self.isLocationEnabled = isLocationEnabled
         _remaining = State(initialValue: duration)
     }
 
@@ -147,8 +146,8 @@ struct SessionTimerView: View {
                         Image(systemName: "mappin.and.ellipse")
                             .font(.system(size: 14))
                             .foregroundColor(.gray)
-                        Text(locationText)
-                            .font(.system(size: 14, weight: (isLocationEnabled ? .regular : .light)))
+                        Text(isLocationEnabled ? locationManager.currentAddress : NSLocalizedString("location_disabled", comment: ""))
+                            .font(.system(size: 14, weight: .regular))
                             .foregroundColor(.gray)
                         Spacer()
                     }
@@ -206,13 +205,26 @@ struct SessionTimerView: View {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmed.isEmpty {
+            let none = NSLocalizedString("location_none", comment: "")
+            let disabled = NSLocalizedString("location_disabled", comment: "")
+            let addr = locationManager.currentAddress
+            let addressToSave: String? = {
+                if isLocationEnabled {
+                    if addr == none || addr == disabled {
+                        return nil
+                    }
+                    return addr
+                } else {
+                    return nil
+                }
+            }()
             let writing = Writing(
                 context: managedObjectContext,
                 title: trimmedTitle.isEmpty ? sessionTitle : trimmedTitle,
                 content: trimmed,
                 date: Date(),
                 type: sessionType,
-                address: locationManager.currentAddress
+                address: addressToSave
             )
             managedObjectContext.insert(writing)
         }

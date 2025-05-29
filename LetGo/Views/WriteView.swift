@@ -101,7 +101,7 @@ struct WriteView: View {
                         Image(systemName: "mappin.and.ellipse")
                             .font(.system(size: 14))
                             .foregroundColor(.gray)
-                        Text(isLocationEnabled ? address : "위치정보 저장이 해제되어 있습니다.")
+                        Text(isLocationEnabled ? address : NSLocalizedString("location_disabled", comment: ""))
                             .font(.system(size: 14, weight: .regular))
                             .foregroundColor(.gray)
                         Spacer()

@@ -364,7 +364,7 @@ struct SessionView: View {
             }
         }
         .fullScreenCover(isPresented: $showModeSetting) {
-            SessionTimerView(duration: (selectedSession == 0 ? 180 : selectedSession == 1 ? 300 : 420), isLocationEnabled: isLocationEnabled)
+            SessionTimerView(duration: (selectedSession == 0 ? 180 : selectedSession == 1 ? 300 : 420))
                 .onAppear { isTabBarHidden = true }
                 .onDisappear { isTabBarHidden = false }
         }

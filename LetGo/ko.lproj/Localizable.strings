@@ -67,4 +67,4 @@
 "system_language" = "시스템 언어";
 "language_change_title" = "언어 변경";
 "language_change_message" = "언어가 변경되었습니다. 변경사항을 적용하기 위해 화면을 새로고침합니다.";
-"preferred_language_settings" = "선호 언어 설정"; 
+"preferred_language_settings" = "언어 설정"; 
