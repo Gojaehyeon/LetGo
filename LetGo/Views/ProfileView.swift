@@ -325,7 +325,7 @@ struct ProfileView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text(NSLocalizedString("app_version", comment: ""))
                     .font(.system(size: 14))
-                Text("v0.0.1(beta)")
+                Text("v1.0.0")
                     .font(.system(size: 13))
                     .foregroundColor(.gray)
             }
@@ -342,7 +342,7 @@ struct ProfileView: View {
             }
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 110)
+        .padding(.bottom, 100)
         
 
         
