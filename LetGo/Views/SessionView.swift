@@ -14,55 +14,58 @@ struct SessionInfo {
 struct SessionCarouselView: View {
     let sessions: [SessionInfo]
     @Binding var selectedSession: Int
-    var body: some View {
-        VStack(spacing: 0) {
-            TabView(selection: $selectedSession) {
-                ForEach(0..<sessions.count, id: \.self) { idx in
-                    let session = sessions[idx]
-                    HStack {
-                        Image(session.imageName)
-                            .resizable()
-                            .aspectRatio(1, contentMode: .fill)
-                            .frame(width: 85, height: 85)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .padding(.trailing, 12)
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(session.subtitle)
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                            Text(session.title)
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundColor(.black)
-                            Text(session.timeDesc)
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        .frame(height: 110)
-                        Spacer()
-                    }
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(20)
-                    .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 1)
-                    .frame(width: UIScreen.main.bounds.width - 40)
-                    .tag(idx)
-                }
-            }
-            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-            .frame(height: 170)
-            .padding(.bottom, 4)
 
-            // 인디케이터 (세션 개수만큼)
-            HStack(spacing: 6) {
-                ForEach(0..<sessions.count, id: \.self) { idx in
-                    Capsule()
-                        .fill(selectedSession == idx ? Color.theme : Color.secondary)
-                        .frame(width: selectedSession == idx ? 18 : 10, height: 4)
-                        .animation(.easeInOut(duration: 0.18), value: selectedSession)
+    var body: some View {
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                TabView(selection: $selectedSession) {
+                    ForEach(0..<sessions.count, id: \.self) { idx in
+                        let session = sessions[idx]
+                        HStack {
+                            Image(session.imageName)
+                                .resizable()
+                                .aspectRatio(1, contentMode: .fill)
+                                .frame(width: 85, height: 85)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .padding(.trailing, 12)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(session.subtitle)
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                                Text(session.title)
+                                    .font(.headline)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.black)
+                                Text(session.timeDesc)
+                                    .font(.caption)
+                                    .foregroundColor(.gray)
+                            }
+                            .frame(height: 110)
+                            Spacer()
+                        }
+                        .padding()
+                        .background(Color.white)
+                        .cornerRadius(20)
+                        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 1)
+                        .frame(width: geometry.size.width - 40)
+                        .tag(idx)
+                    }
                 }
+                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                .frame(height: 170)
+                .padding(.bottom, 4)
+
+                // 인디케이터 (세션 개수만큼)
+                HStack(spacing: 6) {
+                    ForEach(0..<sessions.count, id: \.self) { idx in
+                        Capsule()
+                            .fill(selectedSession == idx ? Color.theme : Color.secondary)
+                            .frame(width: selectedSession == idx ? 18 : 10, height: 4)
+                            .animation(.easeInOut(duration: 0.18), value: selectedSession)
+                    }
+                }
+                .padding(.bottom, 1)
             }
-            .padding(.bottom, 1)
         }
     }
 }
@@ -199,7 +202,13 @@ struct SessionView: View {
     var body: some View {
         ZStack {
             SessionMapView()
-                .offset(y: 20)
+                .offset(y: {
+                    #if targetEnvironment(macCatalyst)
+                    0
+                    #else
+                    UIDevice.current.userInterfaceIdiom == .pad ? 0 : 20
+                    #endif
+                }())
             // 지도 중앙에 프로필 오버레이 (흰 원 + 진한 하얀 테두리)
             ZStack {
                 Circle()
@@ -274,6 +283,7 @@ struct SessionView: View {
 
                 // 세션 캐러셀
                 SessionCarouselView(sessions: sessions, selectedSession: $selectedSession)
+                    .frame(height: 170)
                     .padding(.top, 10)
                     .onChange(of: selectedSession) { oldValue, newValue in
                         previousSession = oldValue
