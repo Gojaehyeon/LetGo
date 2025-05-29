@@ -43,6 +43,14 @@ struct SafariView: UIViewControllerRepresentable {
     func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
 }
 
+// 프로필 링크 데이터 구조체 추가
+struct ProfileLinkData {
+    let image: String
+    let title: String
+    let description: String
+    let url: String
+}
+
 struct ProfileView: View {
     @FetchRequest(
         entity: UserProfile.entity(),
@@ -254,27 +262,15 @@ struct ProfileView: View {
 
         // --- 외부 링크 카드 리스트 ---
         VStack(alignment: .leading, spacing: 8) {
-            ProfileLinkCard(
-                image: Image("1"),
-                title: localizedProfileLinkTitle("go_story"),
-                description: localizedProfileLinkDesc("go_story"),
-                url: URL(string: "https://gojaehyun.notion.site/Letgo-1faf6a5a5d2f805ebb71e7d47c00cd00?pvs=73"),
-                onTap: { url in safariURL = url; showSafari = true }
-            )
-            ProfileLinkCard(
-                image: Image("2"),
-                title: localizedProfileLinkTitle("letgo_vision"),
-                description: localizedProfileLinkDesc("letgo_vision"),
-                url: URL(string: "https://gojaehyun.notion.site/GO-202f6a5a5d2f8054a97be49a970b920f"),
-                onTap: { url in safariURL = url; showSafari = true }
-            )
-            ProfileLinkCard(
-                image: Image("3"),
-                title: localizedProfileLinkTitle("keep_thinking"),
-                description: localizedProfileLinkDesc("keep_thinking"),
-                url: URL(string: "https://gojaehyun.notion.site/UX-202f6a5a5d2f805ab344e3426e6c7597"),
-                onTap: { url in safariURL = url; showSafari = true }
-            )
+            ForEach(profileLinks, id: \.url) { link in
+                ProfileLinkCard(
+                    image: Image(link.image),
+                    title: link.title,
+                    description: link.description,
+                    url: URL(string: link.url),
+                    onTap: { url in safariURL = url; showSafari = true }
+                )
+            }
         }
         .sheet(isPresented: $showSafari) {
             if let url = safariURL {
@@ -407,32 +403,51 @@ struct ProfileView: View {
         }
     }
 
-    // 프로필 링크 카드 다국어 예외 처리 함수
-    func localizedProfileLinkTitle(_ key: String) -> String {
+    // 언어별 링크 데이터 정의
+    var profileLinks: [ProfileLinkData] {
         let lang = Locale.current.languageCode
-        switch key {
-        case "go_story":
-            return lang == "ko" ? "개발자 GO 이야기" : "Developer GO Story"
-        case "letgo_vision":
-            return lang == "ko" ? "Letgo의 비전" : "Letgo's Vision"
-        case "keep_thinking":
-            return lang == "ko" ? "끊임없이 고민하기" : "Constantly Thinking"
-        default:
-            return key
-        }
-    }
-
-    func localizedProfileLinkDesc(_ key: String) -> String {
-        let lang = Locale.current.languageCode
-        switch key {
-        case "go_story":
-            return lang == "ko" ? "세상에 필요한 앱을 만들고 싶어요." : "Building apps the world needs."
-        case "letgo_vision":
-            return lang == "ko" ? "글쓰기의 즐거움을 되찾을 때까지!" : "Discovering writing joy."
-        case "keep_thinking":
-            return lang == "ko" ? "최고의 사용자 경험을 위해 노력중입니다." : "Improving user experience."
-        default:
-            return key
+        if lang == "ko" {
+            return [
+                ProfileLinkData(
+                    image: "1",
+                    title: "개발자 GO 이야기",
+                    description: "세상에 필요한 앱을 만들고 싶어요.",
+                    url: "https://gojaehyun.notion.site/GO-KR-202f6a5a5d2f8092b7a3e504761a145a"
+                ),
+                ProfileLinkData(
+                    image: "2",
+                    title: "Letgo의 비전",
+                    description: "글쓰기의 즐거움을 되찾을 때까지!",
+                    url: "https://gojaehyun.notion.site/LetGO-KR-202f6a5a5d2f80fa91e2d34afbf3d906"
+                ),
+                ProfileLinkData(
+                    image: "3",
+                    title: "끊임없이 고민하기",
+                    description: "최고의 사용자 경험을 위해 노력중입니다.",
+                    url: "https://gojaehyun.notion.site/UX-202f6a5a5d2f805ab344e3426e6c7597"
+                )
+            ]
+        } else {
+            return [
+                ProfileLinkData(
+                    image: "1",
+                    title: "Developer GO Story",
+                    description: "Building apps the world needs.",
+                    url: "https://gojaehyun.notion.site/Go-EN-202f6a5a5d2f80b0b169e543958f5b7a"
+                ),
+                ProfileLinkData(
+                    image: "2",
+                    title: "Letgo's Vision",
+                    description: "Discovering writing joy.",
+                    url: "https://gojaehyun.notion.site/LetGo-EN-202f6a5a5d2f806db39effe84355c080"
+                ),
+                ProfileLinkData(
+                    image: "3",
+                    title: "Constantly Thinking",
+                    description: "Improving user experience.",
+                    url: "https://gojaehyun.notion.site/UX-1-202f6a5a5d2f80f5bf17cf09f18de6d8"
+                )
+            ]
         }
     }
 }

@@ -179,14 +179,24 @@ struct WritingEditView: View {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedTitle.isEmpty && !trimmedContent.isEmpty else { return }
-        let newWriting = Writing(
-            context: context,
-            title: trimmedTitle,
-            content: trimmedContent,
-            date: Date(),
-            type: WritingType(rawValue: writing?.type ?? "") ?? .free,
-            address: isLocationEnabled ? address : nil
-        )
+        
+        if let existingWriting = writing {
+            // Update existing writing
+            existingWriting.title = trimmedTitle
+            existingWriting.content = trimmedContent
+            existingWriting.address = isLocationEnabled ? address : nil
+        } else {
+            // Create new writing only if there's no existing writing
+            let newWriting = Writing(
+                context: context,
+                title: trimmedTitle,
+                content: trimmedContent,
+                date: Date(),
+                type: WritingType(rawValue: writing?.type ?? "") ?? .free,
+                address: isLocationEnabled ? address : nil
+            )
+        }
+        
         try? context.save()
         onSave?()
         dismiss()
