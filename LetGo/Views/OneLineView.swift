@@ -21,11 +21,20 @@ struct OneLineView: View {
         VStack(spacing: 0) {
             OneLineHeader()
             ZStack(alignment: .bottom) {
+                let isPhone: Bool = {
+#if os(iOS)
+                    return UIDevice.current.userInterfaceIdiom == .phone
+#else
+                    return false
+#endif
+                }()
                 Color(.white)
                     .ignoresSafeArea()
                     .contentShape(Rectangle())
                     .onTapGesture {
-                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        if isPhone {
+                            UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                        }
                     }
                 OneLineList(
                     oneLines: oneLines,
@@ -44,6 +53,7 @@ struct OneLineView: View {
                     },
                     keyboardHeight: $keyboardHeight
                 )
+                .allowsHitTesting(!(isPhone && isTextFieldFocused))
                 OneLineInputBar(
                     oneLineText: $oneLineText,
                     isTextFieldFocused: _isTextFieldFocused,
@@ -126,6 +136,13 @@ struct OneLineInputBar: View {
     var onSend: (String) -> Void
     var keyboardHeight: CGFloat
     var body: some View {
+        let isPhone: Bool = {
+#if os(iOS)
+            return UIDevice.current.userInterfaceIdiom == .phone
+#else
+            return false
+#endif
+        }()
         HStack(spacing: 8) {
             TextField(NSLocalizedString("write_placeholder", comment: ""), text: $oneLineText)
                 .textFieldStyle(PlainTextFieldStyle())
@@ -136,10 +153,13 @@ struct OneLineInputBar: View {
                 .focused($isTextFieldFocused)
                 .foregroundColor(.black)
                 .onSubmit {
-                    let trimmed = oneLineText.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !trimmed.isEmpty {
-                        onSend(trimmed)
+                    if !isPhone {
+                        let trimmed = oneLineText.trimmingCharacters(in: .whitespacesAndNewlines)
+                        if !trimmed.isEmpty {
+                            onSend(trimmed)
+                        }
                     }
+                    // iPhone에서는 줄바꿈만, 전송 안 함
                 }
             Button(action: {
                 let trimmed = oneLineText.trimmingCharacters(in: .whitespacesAndNewlines)
