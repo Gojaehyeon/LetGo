@@ -1,11 +1,15 @@
 import Foundation
 
 enum WritingType: String, CaseIterable {
-    case threeMin = "3분세션"
-    case fiveMin = "5분세션"
-    case sevenMin = "7분세션"
-    case oneLine = "오늘의한마디"
-    case free = "자유글쓰기"
+    case threeMin = "three_min"
+    case fiveMin = "five_min"
+    case sevenMin = "seven_min"
+    case oneLine = "one_line"
+    case free = "write_free"
+    
+    var localized: String {
+        NSLocalizedString(self.rawValue, comment: "")
+    }
     
     var icon: String {
         switch self {

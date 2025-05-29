@@ -53,7 +53,7 @@ struct WritingDetailView: View {
                                 .font(.system(size: 24, weight: .bold))
                                 .foregroundColor(.black)
                                 .fixedSize(horizontal: false, vertical: true)
-                            Text(writing.writingType.rawValue)
+                            Text(writing.writingType.localized)
                                 .font(.caption)
                                 .foregroundColor(.black.opacity(0.7))
                                 .padding(.horizontal, 10)
@@ -66,6 +66,7 @@ struct WritingDetailView: View {
                                              Color.theme).opacity(0.1)
                                         )
                                 )
+                                .padding(.top, 4)
                                     
                             Spacer()
                             Button(action: { showActionSheet = true }) {
@@ -81,7 +82,7 @@ struct WritingDetailView: View {
                             Image(systemName: "mappin.and.ellipse")
                                 .font(.system(size: 14))
                                 .foregroundColor(.gray)
-                            Text(writing.address ?? "위치 정보 없음")
+                            Text(writing.address ?? NSLocalizedString("location_none", comment: ""))
                                 .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(.gray)
                             Spacer()
@@ -169,16 +170,16 @@ struct WritingDetailView: View {
             )
         }
         .confirmationDialog("", isPresented: $showActionSheet, titleVisibility: .hidden) {
-            Button("삭제", role: .destructive) {
+            Button(NSLocalizedString("delete", comment: ""), role: .destructive) {
                 context.delete(writing)
                 try? context.save()
                 onClose(false)
             }
-            Button("편집") {
+            Button(NSLocalizedString("edit", comment: "")) {
                 onClose(true)
                 selectedEditingWriting = writing
             }
-            Button("취소", role: .cancel) {}
+            Button(NSLocalizedString("write_cancel", comment: ""), role: .cancel) {}
         }
         .onAppear {
             isLiked = writing.isLiked
@@ -190,8 +191,8 @@ struct WritingDetailView: View {
     let context = PersistenceController.shared.container.viewContext
     WritingDetailView(writing: Writing(
         context: context,
-        title: "이것은 제목입니다",
-        content: "이것은 본문입니다. 3분 세션동안 글을 썼습니다. 안녕하세요. 한 세줄정도까지는 여기서 보이도록 하되 그 이상을 넘어가서 몇 글자 이상 넘어가면 어떻게 할까 생각 그건 점으로 처리합니다. 하지만 여긴 상세보기니까 자세히 볼 수 있죠.",
+        title: NSLocalizedString("preview_title", comment: ""),
+        content: String(format: NSLocalizedString("preview_content", comment: ""), NSLocalizedString("session_3min_time", comment: "")),
         date: Date(),
         type: .threeMin
     ), onClose: { _ in }, selectedEditingWriting: .constant(nil))

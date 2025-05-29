@@ -35,7 +35,7 @@ struct WritingCard: View {
             HStack {
                 Text(writing.title)
                     .font(.system(size: 18, weight: .bold))
-                Text(writing.writingType.rawValue)
+                Text(writing.writingType.localized)
                     .font(.caption)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
@@ -58,13 +58,13 @@ struct WritingCard: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .confirmationDialog("", isPresented: $showActionSheet, titleVisibility: .hidden) {
-                    Button("삭제", role: .destructive) {
+                    Button(NSLocalizedString("delete", comment: ""), role: .destructive) {
                         onDelete?(writing)
                     }
-                    Button("편집") {
+                    Button(NSLocalizedString("edit", comment: "")) {
                         onEdit?()
                     }
-                    Button("취소", role: .cancel) {}
+                    Button(NSLocalizedString("cancel", comment: ""), role: .cancel) {}
                 }
             }
             HStack {

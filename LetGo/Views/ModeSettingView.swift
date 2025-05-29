@@ -12,7 +12,7 @@ struct ModeSettingView: View {
     var body: some View {
         VStack(spacing: 24) {
 
-            Text("글쓰기 설정")
+            Text(NSLocalizedString("write_setting", comment: ""))
                 .font(.system(size: 16, weight: .bold))
                 .padding(.top, 24)
             // 위치정보 저장 토글
@@ -21,7 +21,7 @@ struct ModeSettingView: View {
                     .fill(Color(.systemGray5))
                     .frame(height: 90)
                 HStack {
-                    Text("위치정보 저장하기")
+                    Text(NSLocalizedString("location_save_toggle", comment: ""))
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.black)
                     Spacer()
@@ -32,7 +32,7 @@ struct ModeSettingView: View {
             }
             .padding(.horizontal, 18)
             // 색상 선택
-            Text("테마 컬러")
+            Text(NSLocalizedString("theme_color", comment: ""))
                 .font(.system(size: 16, weight: .bold))
             ZStack {
                 RoundedRectangle(cornerRadius: 18)

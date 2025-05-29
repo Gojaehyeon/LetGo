@@ -99,7 +99,7 @@ struct SessionMapView: View {
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     @Published var lastLocation: CLLocation?
-    @Published var currentAddress: String = "위치 정보 없음"
+    @Published var currentAddress: String = NSLocalizedString("location_none", comment: "")
     private var fixedAddress: String? = nil
     private let geocoder = CLGeocoder()
 
@@ -135,10 +135,10 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
                 if self.fixedAddress == nil && !address.isEmpty {
                     self.fixedAddress = address
                 }
-                self.currentAddress = self.fixedAddress ?? "위치 정보 없음"
+                self.currentAddress = self.fixedAddress ?? NSLocalizedString("location_none", comment: "")
             } else {
                 // 위치가 없어져도 기존 fixedAddress 유지
-                self.currentAddress = self.fixedAddress ?? "위치 정보 없음"
+                self.currentAddress = self.fixedAddress ?? NSLocalizedString("location_none", comment: "")
             }
         }
     }
@@ -170,26 +170,26 @@ struct SessionView: View {
     let sessions: [SessionInfo] = [
         SessionInfo(
             imageName: "3min",
-            subtitle: "일상의 작은 틈 속에서",
-            title: "3min Challenge",
-            timeDesc: "3분 세션",
-            guide: "떠오르는 생각들을 빠르게 적어보아요.",
+            subtitle: NSLocalizedString("session_3min_sub", comment: ""),
+            title: NSLocalizedString("session_3min", comment: ""),
+            timeDesc: NSLocalizedString("session_3min_time", comment: ""),
+            guide: NSLocalizedString("session_3min_guide", comment: ""),
             backgroundImage: "bg_3min"
         ),
         SessionInfo(
             imageName: "5min",
-            subtitle: "5분은 생각보다 길다",
-            title: "5min Challenge",
-            timeDesc: "5분 세션",
-            guide: "더 깊은 생각속에 더 깊이 빠져보세요.",
+            subtitle: NSLocalizedString("session_5min_sub", comment: ""),
+            title: NSLocalizedString("session_5min", comment: ""),
+            timeDesc: NSLocalizedString("session_5min_time", comment: ""),
+            guide: NSLocalizedString("session_5min_guide", comment: ""),
             backgroundImage: "bg_5min"
         ),
         SessionInfo(
             imageName: "7min",
-            subtitle: "진정한 몰입의 7분",
-            title: "7min Challenge",
-            timeDesc: "7분 세션",
-            guide: "몰입해서 나만의 이야기를 써보세요.",
+            subtitle: NSLocalizedString("session_7min_sub", comment: ""),
+            title: NSLocalizedString("session_7min", comment: ""),
+            timeDesc: NSLocalizedString("session_7min_time", comment: ""),
+            guide: NSLocalizedString("session_7min_guide", comment: ""),
             backgroundImage: "bg_7min"
         )
     ]
@@ -272,7 +272,7 @@ struct SessionView: View {
                                     .foregroundColor(.white)
                             }
                         }
-                        Text(userProfile?.nickname ?? "Letgo")
+                        Text(userProfile?.nickname ?? NSLocalizedString("app_name", comment: ""))
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(.black)
@@ -316,7 +316,7 @@ struct SessionView: View {
                 Button(action: {
                     showModeSetting = true
                 }) {
-                    Text("시작하기")
+                    Text(NSLocalizedString("start", comment: ""))
                         .font(.system(size: 27, weight: .bold))
                         .foregroundColor(
                             isDarkColor ? .white : .black
@@ -342,7 +342,7 @@ struct SessionView: View {
 
                 // 세션 설정 버튼
                 Button(action: { showSessionSettingSheet = true }) {
-                    Text("글쓰기 설정")
+                    Text(NSLocalizedString("write_setting", comment: ""))
                         .font(.headline)
                         .foregroundColor(.black)
                         .padding(.horizontal, 32)

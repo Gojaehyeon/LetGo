@@ -37,7 +37,7 @@ struct WritingEditView: View {
                             showCancelDialog = true
                         }
                     }) {
-                        Text("취소")
+                        Text(NSLocalizedString("write_cancel", comment: ""))
                             .font(.system(size: 18, weight: .regular))
                             .foregroundColor(Color(.darkGray))
                     }
@@ -64,7 +64,7 @@ struct WritingEditView: View {
                             dismiss()
                         }
                     }) {
-                        Text("등록")
+                        Text(NSLocalizedString("write_register", comment: ""))
                             .font(.system(size: 18, weight: .semibold))
                             .foregroundColor((!title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ? .theme : .gray)
                     }
@@ -77,7 +77,7 @@ struct WritingEditView: View {
             // 제목 입력란
             ZStack(alignment: .leading) {
                 if title.isEmpty {
-                    Text("제목")
+                    Text(NSLocalizedString("write_title_placeholder", comment: ""))
                         .font(.system(size: 26, weight: .semibold))
                         .foregroundColor(.gray)
                         .padding(.horizontal, 16)
@@ -126,7 +126,7 @@ struct WritingEditView: View {
                     // 본문 입력란
                     ZStack(alignment: .topLeading) {
                         if content.isEmpty {
-                            Text("잘 써야 한다는 부담 없이 자유롭게 적어보세요!")
+                            Text(NSLocalizedString("write_placeholder_long", comment: ""))
                                 .foregroundColor(Color(.systemGray3))
                                 .font(.system(size: 16))
                                 .padding(.horizontal, 20)
@@ -149,14 +149,14 @@ struct WritingEditView: View {
             Spacer()
         }
         .background(Color.white.ignoresSafeArea())
-        .confirmationDialog("작성중인 글을 취소하시겠습니까? 수정사항은 저장되지 않습니다.", isPresented: $showCancelDialog, titleVisibility: .visible) {
-            Button("작성취소", role: .destructive) { 
+        .confirmationDialog(NSLocalizedString("writing_cancel_confirm", comment: ""), isPresented: $showCancelDialog, titleVisibility: .visible) {
+            Button(NSLocalizedString("writing_cancel", comment: ""), role: .destructive) { 
                 isContentFocused = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                     onSave?()
                 }
             }
-            Button("취소", role: .cancel) {}
+            Button(NSLocalizedString("write_cancel", comment: ""), role: .cancel) {}
         }
         .onAppear {
             subscribeToKeyboardNotifications()

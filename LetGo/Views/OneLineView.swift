@@ -48,7 +48,7 @@ struct OneLineView: View {
                     oneLineText: $oneLineText,
                     isTextFieldFocused: _isTextFieldFocused,
                     onSend: { trimmed in
-                        let writing = Writing(context: context, title: "오늘의 한마디", content: trimmed, date: Date(), type: .oneLine)
+                        let writing = Writing(context: context, title: NSLocalizedString("one_line_title", comment: ""), content: trimmed, date: Date(), type: .oneLine)
                         try? context.save()
                         oneLineText = ""
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
@@ -68,7 +68,7 @@ struct OneLineView: View {
             .overlay(
                 Group {
                     if showCopiedToast {
-                        Text("복사되었습니다")
+                        Text(NSLocalizedString("copied", comment: ""))
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(.white)
                             .padding(.horizontal, 16)
@@ -108,7 +108,7 @@ struct OneLineView: View {
 struct OneLineHeader: View {
     var body: some View {
         HStack {
-            Text("생각 한마디")
+            Text(NSLocalizedString("one_line_title", comment: ""))
                 .font(.system(size: 22, weight: .bold))
                 .padding(.leading, 20)
             Spacer()
@@ -127,7 +127,7 @@ struct OneLineInputBar: View {
     var keyboardHeight: CGFloat
     var body: some View {
         HStack(spacing: 8) {
-            TextField("생각 한마디를 입력하세요", text: $oneLineText)
+            TextField(NSLocalizedString("write_placeholder", comment: ""), text: $oneLineText)
                 .textFieldStyle(PlainTextFieldStyle())
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
@@ -258,12 +258,12 @@ struct OneLineRow: View {
                         Button {
                             onCopy(writing.content)
                         } label: {
-                            Label("복사", systemImage: "doc.on.doc")
+                            Label(NSLocalizedString("copy", comment: ""), systemImage: "doc.on.doc")
                         }
                         Button(role: .destructive) {
                             onDelete(writing)
                         } label: {
-                            Label("삭제", systemImage: "trash")
+                            Label(NSLocalizedString("delete", comment: ""), systemImage: "trash")
                         }
                     }
                 if let dateText = dateText {
@@ -281,19 +281,25 @@ struct OneLineRow: View {
 
 private let dateFormatter: DateFormatter = {
     let df = DateFormatter()
-    df.dateFormat = "yyyy.MM.dd"
+    df.dateStyle = .medium
+    df.timeStyle = .none
+    df.locale = Locale.current
     return df
 }()
 
 private let timeFormatter: DateFormatter = {
     let df = DateFormatter()
-    df.dateFormat = "HH:mm"
+    df.dateStyle = .none
+    df.timeStyle = .short
+    df.locale = Locale.current
     return df
 }()
 
 private let fullFormatter: DateFormatter = {
     let df = DateFormatter()
-    df.dateFormat = "yyyy.MM.dd HH:mm"
+    df.dateStyle = .medium
+    df.timeStyle = .short
+    df.locale = Locale.current
     return df
 }()
 

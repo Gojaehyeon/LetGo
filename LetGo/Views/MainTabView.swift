@@ -93,7 +93,7 @@ struct MainTabView: View {
                             }
                         }) {
                             HStack {
-                                Text("자유 글쓰기")
+                                Text(NSLocalizedString("write_free", comment: ""))
                                     .font(.system(size: 17, weight: .semibold))
                                     .foregroundColor(.black)
                                 Spacer()
@@ -105,7 +105,7 @@ struct MainTabView: View {
                             .padding(.vertical, 18)
                         }
                     }
-                    .frame(width: 160)
+                    .frame(width: 180)
                     .background(Color.white)
                     .cornerRadius(15)
                     .shadow(radius: 8)

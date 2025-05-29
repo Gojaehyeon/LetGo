@@ -2,8 +2,8 @@ import SwiftUI
 import CoreData
 
 enum HomeFilter: String, CaseIterable {
-    case all = "전체보기"
-    case liked = "좋아요 표시한 항목"
+    case all = "home_filter_all"
+    case liked = "home_filter_liked"
 }
 
 struct HomeView: View {
@@ -42,7 +42,7 @@ struct HomeView: View {
                         .frame(height: 56)
                     Button(action: { showFilterMenu = true }) {
                         HStack {
-                            Text(selectedFilter.rawValue)
+                            Text(NSLocalizedString(selectedFilter.rawValue, comment: ""))
                                 .font(.system(size: 22, weight: .bold))
                                 .padding(.leading, 20)
                                 .foregroundColor(.black)
@@ -56,8 +56,8 @@ struct HomeView: View {
                         .padding(.bottom, 8)
                     }
                     .confirmationDialog("", isPresented: $showFilterMenu, titleVisibility: .hidden) {
-                        ForEach(HomeFilter.allCases, id: \ .self) { filter in
-                            Button(filter.rawValue) { selectedFilter = filter }
+                        ForEach(HomeFilter.allCases, id: \.self) { filter in
+                            Button(NSLocalizedString(filter.rawValue, comment: "")) { selectedFilter = filter }
                         }
                     }
                 }
@@ -112,8 +112,8 @@ struct HomeView: View {
                 .zIndex(1)
             }
         }
-        .alert("아이클라우드 동기화가 진행 중입니다.\n빠른 반영을 원하시면 앱을 재실행해주세요.", isPresented: $showCloudKitAlert) {
-            Button("확인", role: .cancel) { }
+        .alert(NSLocalizedString("icloud_sync_message", comment: ""), isPresented: $showCloudKitAlert) {
+            Button(NSLocalizedString("confirm", comment: ""), role: .cancel) { }
         }
     }
 }

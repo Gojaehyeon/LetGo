@@ -1,6 +1,47 @@
 import SwiftUI
 import PhotosUI
 import CoreData
+import SafariServices
+
+// 앱 언어 설정을 위한 UserDefaults 키
+let appLanguageKey = "AppLanguage"
+
+// 지원하는 언어 enum
+enum AppLanguage: String, CaseIterable {
+    case system = "system"
+    case korean = "ko"
+    case english = "en"
+    
+    var displayName: String {
+        switch self {
+        case .system: return NSLocalizedString("system_language", comment: "")
+        case .korean: return "한국어"
+        case .english: return "English"
+        }
+    }
+    
+    var locale: Locale {
+        switch self {
+        case .system: return Locale.current
+        case .korean: return Locale(identifier: "ko")
+        case .english: return Locale(identifier: "en")
+        }
+    }
+    
+    static func setLanguage(_ language: AppLanguage) {
+        UserDefaults.standard.set([language.rawValue], forKey: "AppleLanguages")
+        UserDefaults.standard.set(language.rawValue, forKey: appLanguageKey)
+        UserDefaults.standard.synchronize()
+    }
+}
+
+struct SafariView: UIViewControllerRepresentable {
+    let url: URL
+    func makeUIViewController(context: Context) -> SFSafariViewController {
+        SFSafariViewController(url: url)
+    }
+    func updateUIViewController(_ uiViewController: SFSafariViewController, context: Context) {}
+}
 
 struct ProfileView: View {
     @FetchRequest(
@@ -19,6 +60,15 @@ struct ProfileView: View {
     ) var writings: FetchedResults<Writing>
     @State private var showProfileOverlay = false
     @State private var showPhotoActionSheet = false
+    @State private var showLanguageSheet = false
+    @State private var showLanguageChangeAlert = false
+    @AppStorage(appLanguageKey) private var currentLanguage: String = AppLanguage.system.rawValue
+    @State private var safariURL: URL? = nil
+    @State private var showSafari = false
+
+    var selectedLanguage: AppLanguage {
+        AppLanguage(rawValue: currentLanguage) ?? .system
+    }
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -26,13 +76,14 @@ struct ProfileView: View {
                 .fill(Color.white)
                 .frame(height: 56)
             HStack {
-                Text("나의 정보")
+                Text(NSLocalizedString("profile", comment: ""))
                     .font(.system(size: 22, weight: .bold))
-                    .padding(.leading, 20)
+                    .padding(.leading, 12)
                 Spacer()
             }
             .padding(.top, 16)
             .padding(.bottom, 8)
+            .padding(.horizontal, 20)
         }
         Rectangle()
             .frame(height: 1)
@@ -79,7 +130,7 @@ struct ProfileView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("\(postCount)")
                             .font(.system(size: 15, weight: .bold))
-                        Text("게시물")
+                        Text(NSLocalizedString("post_count", comment: ""))
                             .font(.system(size: 13, weight: .regular))
                             .foregroundColor(.gray)
                     }
@@ -87,7 +138,7 @@ struct ProfileView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("\(oneLineCount)")
                             .font(.system(size: 15, weight: .bold))
-                        Text("한마디")
+                        Text(NSLocalizedString("one_line_count", comment: ""))
                             .font(.system(size: 13, weight: .regular))
                             .foregroundColor(.gray)
                     }
@@ -95,12 +146,11 @@ struct ProfileView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(charCountDisplay)
                             .font(.system(size: 15, weight: .bold))
-                        Text("글자")
+                        Text(NSLocalizedString("char_count", comment: ""))
                             .font(.system(size: 13, weight: .regular))
                             .foregroundColor(.gray)
                     }
                     .frame(minWidth: 36)
-
                 }
             }
             Spacer()
@@ -156,31 +206,31 @@ struct ProfileView: View {
                                 userProfile.imageData = nil
                                 try? context.save()
                             } label: {
-                                Label("사진 삭제", systemImage: "trash")
+                                Label(NSLocalizedString("delete_photo", comment: ""), systemImage: "trash")
                             }
                         }
                     }
-                    .confirmationDialog("프로필 사진", isPresented: $showPhotoActionSheet, titleVisibility: .visible) {
+                    .confirmationDialog(NSLocalizedString("profile_photo", comment: ""), isPresented: $showPhotoActionSheet, titleVisibility: .visible) {
                         if userProfile.imageData == nil {
-                            Button("사진 추가") {
+                            Button(NSLocalizedString("add_photo", comment: "")) {
                                 showProfileOverlay = false
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                     pendingImagePicker = true
                                 }
                             }
                         } else {
-                            Button("사진 변경") {
+                            Button(NSLocalizedString("change_photo", comment: "")) {
                                 showProfileOverlay = false
                                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                                     pendingImagePicker = true
                                 }
                             }
-                            Button("사진 삭제", role: .destructive) {
+                            Button(NSLocalizedString("delete_photo", comment: ""), role: .destructive) {
                                 userProfile.imageData = nil
                                 try? context.save()
                             }
                         }
-                        Button("취소", role: .cancel) {}
+                        Button(NSLocalizedString("write_cancel", comment: ""), role: .cancel) {}
                     }
                     VStack(spacing: 0) {
                         TextField("Letgo", text: Binding(
@@ -200,27 +250,36 @@ struct ProfileView: View {
                 }
             }
         }
+        
 
         // --- 외부 링크 카드 리스트 ---
         VStack(alignment: .leading, spacing: 8) {
             ProfileLinkCard(
                 image: Image("1"),
-                title: "개발자 GO 이야기",
-                description: "세상에 필요한 앱을 만들고 싶어요.",
-                url: URL(string: "https://your-go-link.com")
+                title: localizedProfileLinkTitle("go_story"),
+                description: localizedProfileLinkDesc("go_story"),
+                url: URL(string: "https://gojaehyun.notion.site/Letgo-1faf6a5a5d2f805ebb71e7d47c00cd00?pvs=73"),
+                onTap: { url in safariURL = url; showSafari = true }
             )
             ProfileLinkCard(
                 image: Image("2"),
-                title: "Letgo의 비전",
-                description: "글쓰기의 즐거움을 되찾을 때까지!",
-                url: URL(string: "https://your-learndry-link.com")
+                title: localizedProfileLinkTitle("letgo_vision"),
+                description: localizedProfileLinkDesc("letgo_vision"),
+                url: URL(string: "https://gojaehyun.notion.site/GO-202f6a5a5d2f8054a97be49a970b920f"),
+                onTap: { url in safariURL = url; showSafari = true }
             )
             ProfileLinkCard(
                 image: Image("3"),
-                title: "끊임없이 고민하기",
-                description: "최고의 사용자 경험을 위해 노력중입니다.",
-                url: URL(string: "https://your-nfc-link.com")
+                title: localizedProfileLinkTitle("keep_thinking"),
+                description: localizedProfileLinkDesc("keep_thinking"),
+                url: URL(string: "https://gojaehyun.notion.site/UX-202f6a5a5d2f805ab344e3426e6c7597"),
+                onTap: { url in safariURL = url; showSafari = true }
             )
+        }
+        .sheet(isPresented: $showSafari) {
+            if let url = safariURL {
+                SafariView(url: url)
+            }
         }
         .padding(.horizontal, 32)
         .padding(.top, 8)
@@ -238,11 +297,33 @@ struct ProfileView: View {
                     }
                 }
             }
+        Divider()
+            .padding(.bottom, 12)
 
         // --- 앱 버전 및 개인정보처리방침 ---
+        Button(action: {
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        }) {
+            HStack {
+                Image(systemName: "globe")
+                    .foregroundColor(.gray)
+                Text(NSLocalizedString("preferred_language_settings", comment: ""))
+                    .foregroundColor(.primary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.gray)
+            }
+            .padding(.horizontal, 20)
+        }
+            .padding(.bottom, 12)
+        Divider()
+            .padding(.bottom, 12)
+
         HStack {
             VStack(alignment: .leading, spacing: 2) {
-                Text("App Version")
+                Text(NSLocalizedString("app_version", comment: ""))
                     .font(.system(size: 14))
                 Text("v0.0.1(beta)")
                     .font(.system(size: 13))
@@ -250,17 +331,26 @@ struct ProfileView: View {
             }
             Spacer()
             Button(action: {
-                if let url = URL(string: "https://your-privacy-link.com") {
-                    UIApplication.shared.open(url)
+                if let url = URL(string: "https://gojaehyun.notion.site/Privacy-Policy-202f6a5a5d2f805aa51ecb53d77f5a34") {
+                    safariURL = url
+                    showSafari = true
                 }
             }) {
-                Text("개인정보처리방침")
+                Text(NSLocalizedString("privacy_policy", comment: ""))
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(.gray)
             }
         }
         .padding(.horizontal, 20)
-        .padding(.bottom, 16)
+        .padding(.bottom, 110)
+        
+
+        
+        Button(action: {
+            // ... existing developer story action ...
+        }) {
+            // ... existing developer story button content ...
+        }
     }
     
 
@@ -279,21 +369,26 @@ struct ProfileView: View {
     // 글자수 표기 (10,000 이상이면 1.2만, 1,000 이상이면 1.2천, 그 미만은 그대로 숫자로 표기)
     var charCountDisplay: String {
         let count = charCount
+        let isKorean = Locale.current.languageCode == "ko"
         if count >= 10_000 {
-            let formatted = Double(count) / 10_000
-            let str = String(format: "%.1f", formatted)
-            if str.hasSuffix(".0") {
-                return "\(Int(formatted))만"
+            if isKorean {
+                let formatted = Double(count) / 10_000
+                let str = String(format: "%.1f", formatted)
+                return str.hasSuffix(".0") ? "\(Int(formatted))만" : "\(str)만"
             } else {
-                return "\(str)만"
+                let formatted = Double(count) / 1_000
+                let str = String(format: "%.0f", formatted)
+                return "\(str)k"
             }
         } else if count >= 1_000 {
-            let formatted = Double(count) / 1_000
-            let str = String(format: "%.1f", formatted)
-            if str.hasSuffix(".0") {
-                return "\(Int(formatted))천"
+            if isKorean {
+                let formatted = Double(count) / 1_000
+                let str = String(format: "%.1f", formatted)
+                return str.hasSuffix(".0") ? "\(Int(formatted))천" : "\(str)천"
             } else {
-                return "\(str)천"
+                let formatted = Double(count) / 1_000
+                let str = String(format: "%.1f", formatted)
+                return "\(str)k"
             }
         } else {
             return "\(count)"
@@ -311,6 +406,35 @@ struct ProfileView: View {
             return newProfile
         }
     }
+
+    // 프로필 링크 카드 다국어 예외 처리 함수
+    func localizedProfileLinkTitle(_ key: String) -> String {
+        let lang = Locale.current.languageCode
+        switch key {
+        case "go_story":
+            return lang == "ko" ? "개발자 GO 이야기" : "Developer GO Story"
+        case "letgo_vision":
+            return lang == "ko" ? "Letgo의 비전" : "Letgo's Vision"
+        case "keep_thinking":
+            return lang == "ko" ? "끊임없이 고민하기" : "Constantly Thinking"
+        default:
+            return key
+        }
+    }
+
+    func localizedProfileLinkDesc(_ key: String) -> String {
+        let lang = Locale.current.languageCode
+        switch key {
+        case "go_story":
+            return lang == "ko" ? "세상에 필요한 앱을 만들고 싶어요." : "Building apps the world needs."
+        case "letgo_vision":
+            return lang == "ko" ? "글쓰기의 즐거움을 되찾을 때까지!" : "Discovering writing joy."
+        case "keep_thinking":
+            return lang == "ko" ? "최고의 사용자 경험을 위해 노력중입니다." : "Improving user experience."
+        default:
+            return key
+        }
+    }
 }
 
 // --- 프로필 링크 카드 뷰 ---
@@ -319,11 +443,12 @@ struct ProfileLinkCard: View {
     let title: String
     let description: String
     let url: URL?
+    var onTap: ((URL) -> Void)? = nil
 
     var body: some View {
         Button(action: {
             if let url = url {
-                UIApplication.shared.open(url)
+                onTap?(url)
             }
         }) {
             HStack(alignment: .center, spacing: 16) {

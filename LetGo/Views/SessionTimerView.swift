@@ -39,10 +39,10 @@ struct SessionTimerView: View {
 
     var sessionTitle: String {
         switch duration {
-        case 180: return "3분 세션"
-        case 300: return "5분 세션"
-        case 420: return "7분 세션"
-        default: return "글쓰기 세션"
+        case 180: return NSLocalizedString("session_3min_time", comment: "")
+        case 300: return NSLocalizedString("session_5min_time", comment: "")
+        case 420: return NSLocalizedString("session_7min_time", comment: "")
+        default: return NSLocalizedString("session_default_time", comment: "")
         }
     }
     var sessionType: WritingType {
@@ -58,7 +58,7 @@ struct SessionTimerView: View {
         if isLocationEnabled {
             return locationManager.currentAddress
         } else {
-            return "위치정보 저장이 해제되어 있습니다."
+            return NSLocalizedString("location_disabled", comment: "")
         }
     }
 
@@ -89,16 +89,16 @@ struct SessionTimerView: View {
                     Button(action: {
                         showCancelDialog = true
                     }) {
-                        Text("취소")
+                        Text(NSLocalizedString("write_cancel", comment: ""))
                             .font(.system(size: 18, weight: .regular))
                             .foregroundColor(Color(.darkGray))
                     }
                     .padding(.leading, 20)
                     Spacer()
                     Button(action: { if !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { showEndAlert = true } }) {
-                        Text("등록")
+                        Text(NSLocalizedString("write_register", comment: ""))
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor((!title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ? .orange : .gray)
+                            .foregroundColor((!title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty) ? .theme : .gray)
                     }
                     .padding(.trailing, 20)
                     .disabled(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
@@ -109,7 +109,7 @@ struct SessionTimerView: View {
             // 제목 입력란
             ZStack(alignment: .leading) {
                 if title.isEmpty {
-                    Text("제목")
+                    Text(NSLocalizedString("write_title_placeholder", comment: ""))
                         .font(.system(size: 26, weight: .semibold))
                         .foregroundColor(.gray)
                         .padding(.horizontal, 16)
@@ -158,7 +158,7 @@ struct SessionTimerView: View {
                     // 본문 입력란
                     ZStack(alignment: .topLeading) {
                         if text.isEmpty {
-                            Text("잘 써야 한다는 부담 없이 자유롭게 적어보세요!")
+                            Text(NSLocalizedString("write_placeholder_long", comment: ""))
                                 .foregroundColor(Color(.systemGray3))
                                 .font(.system(size: 16))
                                 .padding(.horizontal, 20)
@@ -190,15 +190,15 @@ struct SessionTimerView: View {
             timer = nil
             timerCancellable?.cancel()
         }
-        .alert("작성을 종료하시겠습니까?", isPresented: $showEndAlert) {
-            Button("아니오", role: .cancel) {}
-            Button("네", role: .destructive) { saveAndExit() }
+        .alert(NSLocalizedString("end_writing", comment: ""), isPresented: $showEndAlert) {
+            Button(NSLocalizedString("no", comment: ""), role: .cancel) { }
+            Button(NSLocalizedString("yes", comment: ""), role: .destructive) { saveAndExit() }
         } message: {
-            Text("작성한 내용이 저장됩니다.")
+            Text(NSLocalizedString("writing_saved", comment: ""))
         }
-        .confirmationDialog("작성을 종료하시겠습니까? 작성한 내용이 저장되지 않습니다.", isPresented: $showCancelDialog, titleVisibility: .visible) {
-            Button("작성취소", role: .destructive) { presentationMode.wrappedValue.dismiss() }
-            Button("취소", role: .cancel) {}
+        .confirmationDialog(NSLocalizedString("writing_cancel_confirm", comment: ""), isPresented: $showCancelDialog, titleVisibility: .visible) {
+            Button(NSLocalizedString("writing_cancel", comment: ""), role: .destructive) { presentationMode.wrappedValue.dismiss() }
+            Button(NSLocalizedString("write_cancel", comment: ""), role: .cancel) { }
         }
     }
 
