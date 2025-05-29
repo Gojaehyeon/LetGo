@@ -272,7 +272,7 @@ struct SessionView: View {
                                     .foregroundColor(.white)
                             }
                         }
-                        Text(userProfile?.nickname ?? NSLocalizedString("app_name", comment: ""))
+                        Text((userProfile?.nickname?.isEmpty == false ? userProfile?.nickname : "Letgo") ?? "Letgo")
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(.black)
@@ -286,6 +286,7 @@ struct SessionView: View {
                 // 세션 캐러셀
                 SessionCarouselView(sessions: sessions, selectedSession: $selectedSession)
                     .frame(height: 170)
+                    .padding(.top, 10)
                     .padding(.top, 10)
                     .onChange(of: selectedSession) { oldValue, newValue in
                         previousSession = oldValue
