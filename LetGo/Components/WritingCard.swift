@@ -20,7 +20,16 @@ struct WritingCard: View {
     @Environment(\.managedObjectContext) private var context
     @State private var showShareSheet = false
     @State private var isLiked: Bool = false
-    
+
+    // 공유 텍스트 미리 계산
+    var shareText: String {
+        if !writing.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return "#" + writing.title + "\n" + writing.content
+        } else {
+            return writing.content
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -91,7 +100,7 @@ struct WritingCard: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .sheet(isPresented: $showShareSheet) {
-                    ActivityView(activityItems: [writing.content])
+                    ActivityView(activityItems: [shareText])
                         .presentationDetents([.medium, .large])
                 }
             }

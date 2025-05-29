@@ -1,5 +1,13 @@
 import SwiftUI
 
+func isPadOrMac() -> Bool {
+    #if targetEnvironment(macCatalyst)
+    return true
+    #else
+    return UIDevice.current.userInterfaceIdiom == .pad
+    #endif
+}
+
 struct MainTabView: View {
     @State private var selectedTab: Int = 1
     @State private var isTabBarHidden: Bool = false
@@ -101,13 +109,8 @@ struct MainTabView: View {
                     .background(Color.white)
                     .cornerRadius(15)
                     .shadow(radius: 8)
-                    .padding(.top, 550)
-//                    .transition(
-//                        .asymmetric(
-//                            insertion: .move(edge: .bottom).combined(with: .opacity),
-//                            removal: .move(edge: .bottom).combined(with: .opacity)
-//                        )
-//                    )
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, isPadOrMac() ? 100 : 80)
                 }
             }, alignment: .center
         )

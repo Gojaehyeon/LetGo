@@ -20,9 +20,13 @@ struct OneLineView: View {
     var body: some View {
         VStack(spacing: 0) {
             OneLineHeader()
-            Spacer()
             ZStack(alignment: .bottom) {
-                Color(.white).ignoresSafeArea()
+                Color(.white)
+                    .ignoresSafeArea()
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                    }
                 OneLineList(
                     oneLines: oneLines,
                     context: context,
@@ -37,7 +41,8 @@ struct OneLineView: View {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
                             showCopiedToast = false
                         }
-                    }
+                    },
+                    keyboardHeight: $keyboardHeight
                 )
                 OneLineInputBar(
                     oneLineText: $oneLineText,
@@ -46,6 +51,9 @@ struct OneLineView: View {
                         let writing = Writing(context: context, title: "오늘의 한마디", content: trimmed, date: Date(), type: .oneLine)
                         try? context.save()
                         oneLineText = ""
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                            NotificationCenter.default.post(name: Notification.Name("ScrollToBottom"), object: nil)
+                        }
                     },
                     keyboardHeight: keyboardHeight
                 )
@@ -99,22 +107,16 @@ struct OneLineView: View {
 
 struct OneLineHeader: View {
     var body: some View {
-        ZStack(alignment: .top) {
-            Rectangle()
-                .fill(Color.white)
-                .frame(height: 56)
-            HStack {
-                Text("생각 한마디")
-                    .font(.system(size: 22, weight: .bold))
-                    .padding(.leading, 20)
-                Spacer()
-            }
-            .padding(.top, 16)
-            .padding(.bottom, 8)
+        HStack {
+            Text("생각 한마디")
+                .font(.system(size: 22, weight: .bold))
+                .padding(.leading, 20)
+            Spacer()
         }
-        Rectangle()
-            .frame(height: 1)
-            .foregroundColor(.gray.opacity(0.3))
+        .padding(.top, 16)
+        .padding(.bottom, 8)
+        .background(Color.white)
+        Divider()
     }
 }
 
@@ -133,6 +135,12 @@ struct OneLineInputBar: View {
                 .cornerRadius(20)
                 .focused($isTextFieldFocused)
                 .foregroundColor(.black)
+                .onSubmit {
+                    let trimmed = oneLineText.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !trimmed.isEmpty {
+                        onSend(trimmed)
+                    }
+                }
             Button(action: {
                 let trimmed = oneLineText.trimmingCharacters(in: .whitespacesAndNewlines)
                 if !trimmed.isEmpty {
@@ -159,24 +167,69 @@ struct OneLineList: View {
     @Binding var showCopiedToast: Bool
     var onDelete: (Writing) -> Void
     var onCopy: (String) -> Void
+    @Binding var keyboardHeight: CGFloat
+
     var body: some View {
+        let datedRows: [(Writing, String?)] = oneLines.enumerated().map { index, writing in
+            let currentDate = writing.date
+            let isLast = index == oneLines.count - 1
+            let nextDate = isLast ? nil : oneLines[index + 1].date
+
+            let sameMinuteAsNext = nextDate != nil &&
+                Calendar.current.isDate(currentDate, equalTo: nextDate!, toGranularity: .minute)
+
+            let showTime = !sameMinuteAsNext
+            let isLastOfDay = isLast ||
+                !Calendar.current.isDate(currentDate, inSameDayAs: nextDate!)
+
+            let dateText: String? = showTime
+                ? (isLastOfDay ? fullFormatter.string(from: currentDate) : timeFormatter.string(from: currentDate))
+                : nil
+
+            return (writing, dateText)
+        }
         ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 0) {
-                    ForEach(oneLines, id: \.objectID) { writing in
+                    ForEach(datedRows, id: \.0.objectID) { writing, dateText in
                         OneLineRow(
                             writing: writing,
                             onDelete: onDelete,
-                            onCopy: onCopy
+                            onCopy: onCopy,
+                            dateText: dateText
                         )
                     }
+                    Color.clear
+                        .frame(height: 140 + keyboardHeight)
+                        .id("bottomSpacer")
                 }
-                .padding(.bottom, 80)
+                .padding(.bottom, 150)
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    withAnimation {
+                        proxy.scrollTo("bottomSpacer", anchor: .bottom)
+                    }
+                }
             }
             .onChange(of: oneLines.count) { _ in
-                if let last = oneLines.last {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
                     withAnimation {
-                        proxy.scrollTo(last.objectID, anchor: .bottom)
+                        proxy.scrollTo("bottomSpacer", anchor: .bottom)
+                    }
+                }
+            }
+            .onChange(of: keyboardHeight) { _ in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    withAnimation {
+                        proxy.scrollTo("bottomSpacer", anchor: .bottom)
+                    }
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: Notification.Name("ScrollToBottom"))) { _ in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    withAnimation {
+                        proxy.scrollTo("bottomSpacer", anchor: .bottom)
                     }
                 }
             }
@@ -188,6 +241,7 @@ struct OneLineRow: View {
     let writing: Writing
     let onDelete: (Writing) -> Void
     let onCopy: (String) -> Void
+    let dateText: String?
 
     var body: some View {
         HStack {
@@ -212,10 +266,12 @@ struct OneLineRow: View {
                             Label("삭제", systemImage: "trash")
                         }
                     }
-                Text(dateFormatter.string(from: writing.date))
-                    .font(.caption2)
-                    .foregroundColor(.gray)
-                    .padding(.trailing, 4)
+                if let dateText = dateText {
+                    Text(dateText)
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+                        .padding(.trailing, 4)
+                }
             }
         }
         .padding(.vertical, 4)
@@ -229,7 +285,19 @@ private let dateFormatter: DateFormatter = {
     return df
 }()
 
+private let timeFormatter: DateFormatter = {
+    let df = DateFormatter()
+    df.dateFormat = "HH:mm"
+    return df
+}()
+
+private let fullFormatter: DateFormatter = {
+    let df = DateFormatter()
+    df.dateFormat = "yyyy.MM.dd HH:mm"
+    return df
+}()
+
 #Preview {
     OneLineView()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-} 
+}

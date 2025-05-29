@@ -14,6 +14,7 @@ struct WriteView: View {
     @State private var showCancelDialog = false
     var onSave: (() -> Void)? = nil
     @AppStorage("isLocationEnabled") var isLocationEnabled: Bool = true
+    @State private var keyboardHeight: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -93,38 +94,44 @@ struct WriteView: View {
             }
             .padding(.top, 0)
             Divider()
-            // 위치 표시 바
-            HStack(spacing: 4) {
-                Image(systemName: "mappin.and.ellipse")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-                Text(isLocationEnabled ? address : "위치정보 저장이 해제되어 있습니다.")
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(.gray)
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .padding(.bottom, -8)
-            // 본문 입력란
-            ZStack(alignment: .topLeading) {
-                if content.isEmpty {
-                    Text("잘 써야 한다는 부담 없이 자유롭게 적어보세요!")
-                        .foregroundColor(Color(.systemGray3))
-                        .font(.system(size: 16))
-                        .padding(.horizontal, 20)
-                        .padding(.top, 8)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    // 위치 표시 바 (주소)
+                    HStack(spacing: 4) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
+                        Text(isLocationEnabled ? address : "위치정보 저장이 해제되어 있습니다.")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(.gray)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
+                    .padding(.bottom, -8)
+                    // 본문 입력란
+                    ZStack(alignment: .topLeading) {
+                        if content.isEmpty {
+                            Text("잘 써야 한다는 부담 없이 자유롭게 적어보세요!")
+                                .foregroundColor(Color(.systemGray3))
+                                .font(.system(size: 16))
+                                .padding(.horizontal, 20)
+                                .padding(.top, 8)
+                        }
+                        TextEditor(text: $content)
+                            .font(.system(size: 16))
+                            .lineSpacing(3)
+                            .padding(.horizontal, 14)
+                            .background(Color.clear)
+                            .focused($isContentFocused)
+                            .scrollContentBackground(.hidden)
+                            .frame(minHeight: 180, maxHeight: keyboardHeight > 0 ? 320 : .infinity, alignment: .top)
+                    }
+                    .padding(.horizontal, 0)
                 }
-                TextEditor(text: $content)
-                    .font(.system(size: 16))
-                    .lineSpacing(3)
-                    .padding(.horizontal, 14)
-                    .background(Color.clear)
-                    .focused($isContentFocused)
-                    .scrollContentBackground(.hidden)
+                .padding(.bottom, keyboardHeight > 0 ? max(keyboardHeight - 80, 0) : 0)
             }
-            .frame(minHeight: 180, maxHeight: 260)
-            .padding(.horizontal, 0)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             Spacer()
         }
         .background(Color.white.ignoresSafeArea())
@@ -146,6 +153,14 @@ struct WriteView: View {
         }
         .onReceive(locationManager.$currentAddress) { newAddress in
             address = newAddress
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { notification in
+            if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                keyboardHeight = keyboardFrame.height
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            keyboardHeight = 0
         }
     }
 }

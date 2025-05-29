@@ -28,6 +28,7 @@ struct SessionCarouselView: View {
                                 .frame(width: 85, height: 85)
                                 .clipShape(RoundedRectangle(cornerRadius: 12))
                                 .padding(.trailing, 12)
+                                .padding(.leading, 8)
                             VStack(alignment: .leading, spacing: 6) {
                                 Text(session.subtitle)
                                     .font(.subheadline)
@@ -99,6 +100,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     private let manager = CLLocationManager()
     @Published var lastLocation: CLLocation?
     @Published var currentAddress: String = "위치 정보 없음"
+    private var fixedAddress: String? = nil
     private let geocoder = CLGeocoder()
 
     override init() {
@@ -117,33 +119,26 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
 
     private func updateAddress(for location: CLLocation) {
         geocoder.reverseGeocodeLocation(location) { [weak self] placemarks, error in
-            guard let self = self,
-                  let placemark = placemarks?.first,
-                  error == nil else {
-                self?.currentAddress = "위치 정보 없음"
-                return
-            }
-
-            // 주소 구성요소 추출
-            var addressComponents: [String] = []
-            
-            if let locality = placemark.locality {
-                addressComponents.append(locality)
-            }
-            if let subLocality = placemark.subLocality {
-                addressComponents.append(subLocality)
-            }
-            if let thoroughfare = placemark.thoroughfare {
-                addressComponents.append(thoroughfare)
-            }
-
-            // 주소가 비어있으면 "위치 정보 없음" 표시
-            if addressComponents.isEmpty {
-                self.currentAddress = "위치 정보 없음"
-            } else {
-                // 최대 2개의 주소 구성요소만 사용
+            guard let self = self else { return }
+            if let placemark = placemarks?.first, error == nil {
+                var addressComponents: [String] = []
+                if let locality = placemark.locality {
+                    addressComponents.append(locality)
+                }
+                if let subLocality = placemark.subLocality {
+                    addressComponents.append(subLocality)
+                }
+                if let thoroughfare = placemark.thoroughfare {
+                    addressComponents.append(thoroughfare)
+                }
                 let address = addressComponents.prefix(2).joined(separator: " ")
-                self.currentAddress = address
+                if self.fixedAddress == nil && !address.isEmpty {
+                    self.fixedAddress = address
+                }
+                self.currentAddress = self.fixedAddress ?? "위치 정보 없음"
+            } else {
+                // 위치가 없어져도 기존 fixedAddress 유지
+                self.currentAddress = self.fixedAddress ?? "위치 정보 없음"
             }
         }
     }
@@ -246,6 +241,13 @@ struct SessionView: View {
                 endRadius: UIScreen.main.bounds.width * 0.7
             )
             .ignoresSafeArea()
+            let isPadOrMac: Bool = {
+                #if targetEnvironment(macCatalyst)
+                return true
+                #else
+                return UIDevice.current.userInterfaceIdiom == .pad
+                #endif
+            }()
             VStack(spacing: 0) {
                 // 상단 프로필 전체를 Button으로 감싸기
                 Button(action: {
@@ -294,13 +296,9 @@ struct SessionView: View {
                         }
                     }
 
-                // 가이드 메시지
-//                Text(sessions[selectedSession].guide)
-//                    .font(.system(size: 18, weight: .semibold))
-//                    .foregroundColor(.black)
-//                    .multilineTextAlignment(.center)
-//                    .padding(.horizontal, 40)
-//                    .padding(.top, 30)
+                if isPadOrMac {
+                    Spacer()
+                }
 
                 // 시작하기 버튼
                 let themeColor = Color(hex: themeColorHex)
@@ -323,10 +321,20 @@ struct SessionView: View {
                         .foregroundColor(
                             isDarkColor ? .white : .black
                         )
-                        .frame(width: 150, height: 150)
+                        .frame(width: isPadOrMac ? 180 : 150, height: isPadOrMac ? 180 : 150)
                         .background(
                             Circle()
-                                .fill(Color.theme)
+                                .fill(
+                                    LinearGradient(
+                                        gradient: Gradient(colors: [
+                                            themeColor.opacity(1.0),
+                                            themeColor.opacity(0.9),
+                                            themeColor.opacity(0.8)
+                                        ]),
+                                        startPoint: .bottomLeading,
+                                        endPoint: .topTrailing
+                                    )
+                                )
                                 .shadow(color: Color.black.opacity(0.2), radius: 8, x: 0, y: 0)
                         )
                 }
@@ -342,13 +350,17 @@ struct SessionView: View {
                         .background(Capsule().fill(Color.white))
                         .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 0)
                 }
-                .padding(.top, 28)
+                .padding(.top, isPadOrMac ? 50 : 28)
                 .sheet(isPresented: $showSessionSettingSheet) {
                     ModeSettingView()
                         .presentationDetents([.medium, .large])
                 }
+                // 조건부 바텀 패딩
+                .padding(.bottom, isPadOrMac ? 130 : 0)
 
-                Spacer()
+                if !isPadOrMac {
+                    Spacer()
+                }
             }
         }
         .fullScreenCover(isPresented: $showModeSetting) {

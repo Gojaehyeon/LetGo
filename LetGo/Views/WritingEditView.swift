@@ -108,38 +108,44 @@ struct WritingEditView: View {
             }
             .padding(.top, 0)
             Divider()
-            // Location indicator bar
-            HStack(spacing: 4) {
-                Image(systemName: "mappin.and.ellipse")
-                    .font(.system(size: 14))
-                    .foregroundColor(.gray)
-                Text(address)
-                    .font(.system(size: 14, weight: .regular))
-                    .foregroundColor(.gray)
-                Spacer()
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 14)
-            .padding(.bottom, -8)
-            // 본문 입력란 (TextEditor) – now with 20pt extra top padding
-            ZStack(alignment: .topLeading) {
-                if content.isEmpty {
-                    Text("잘 써야 한다는 부담 없이 자유롭게 적어보세요!")
-                        .foregroundColor(Color(.systemGray3))
-                        .font(.system(size: 16))
-                        .padding(.horizontal, 20)
-                        .padding(.top, 8)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 0) {
+                    // 위치 표시 바 (주소)
+                    HStack(spacing: 4) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray)
+                        Text(address)
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundColor(.gray)
+                        Spacer()
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 14)
+                    .padding(.bottom, -8)
+                    // 본문 입력란
+                    ZStack(alignment: .topLeading) {
+                        if content.isEmpty {
+                            Text("잘 써야 한다는 부담 없이 자유롭게 적어보세요!")
+                                .foregroundColor(Color(.systemGray3))
+                                .font(.system(size: 16))
+                                .padding(.horizontal, 20)
+                                .padding(.top, 8)
+                        }
+                        TextEditor(text: $content)
+                            .font(.system(size: 16))
+                            .lineSpacing(3)
+                            .padding(.horizontal, 14)
+                            .background(Color.clear)
+                            .focused($isContentFocused)
+                            .scrollContentBackground(.hidden)
+                            .frame(minHeight: 180, maxHeight: keyboardHeight > 0 ? 320 : .infinity, alignment: .top)
+                    }
+                    .padding(.horizontal, 0)
                 }
-                TextEditor(text: $content)
-                    .font(.system(size: 16))
-                    .lineSpacing(3)
-                    .padding(.horizontal, 14)
-                    .background(Color.clear)
-                    .focused($isContentFocused)
-                    .scrollContentBackground(.hidden)
+                .padding(.bottom, keyboardHeight > 0 ? max(keyboardHeight - 80, 0) : 0)
             }
-            .frame(minHeight: 180, maxHeight: 260)
-            .padding(.horizontal, 0)
+            .ignoresSafeArea(.keyboard, edges: .bottom)
             Spacer()
         }
         .background(Color.white.ignoresSafeArea())

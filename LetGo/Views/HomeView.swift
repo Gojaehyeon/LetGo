@@ -61,10 +61,7 @@ struct HomeView: View {
                         }
                     }
                 }
-                Rectangle()
-                    .frame(height: 1)
-                    .foregroundColor(.gray.opacity(0.3))
-                    .padding(.bottom, 8)
+                Divider()
 
 
                 // 본문

@@ -11,13 +11,22 @@ struct WritingDetailView: View {
     @State private var offset: CGFloat = 0
     @State private var isLiked: Bool = false
 
+    // 공유 텍스트 미리 계산
+    var shareText: String {
+        if !writing.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return "#" + writing.title + "\n" + writing.content
+        } else {
+            return writing.content
+        }
+    }
+
     var body: some View {
         ZStack {
             Color.white.ignoresSafeArea()
             VStack(spacing: 0) {
                 // 커스텀 Back 버튼
                 HStack {
-                    Button(action: { 
+                    Button(action: {
                         withAnimation(.easeInOut(duration: 0.1)) {
                             offset = UIScreen.main.bounds.width
                         }
@@ -50,10 +59,14 @@ struct WritingDetailView: View {
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 4)
                                 .background(
-                                    (writing.writingType == .oneLine ? Color.theme : Color.blue).opacity(0.2)
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(
+                                            (writing.writingType == .oneLine ? Color.theme :
+                                             writing.writingType == .free ? Color.blue :
+                                             Color.theme).opacity(0.1)
+                                        )
                                 )
-                                .cornerRadius(6)
-                                .padding(.top, 4)
+                                    
                             Spacer()
                             Button(action: { showActionSheet = true }) {
                                 Image(systemName: "ellipsis")
@@ -120,7 +133,7 @@ struct WritingDetailView: View {
                                     .font(.system(size: 26))
                             }
                             .sheet(isPresented: $showShareSheet) {
-                                ActivityView(activityItems: [writing.content])
+                                ActivityView(activityItems: [shareText])
                                     .presentationDetents([.medium, .large])
                             }
                         }
