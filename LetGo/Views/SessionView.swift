@@ -285,8 +285,27 @@ struct SessionView: View {
 
                 // 세션 캐러셀
                 SessionCarouselView(sessions: sessions, selectedSession: $selectedSession)
-                    .frame(height: 170)
-                    .padding(.top, 10)
+                    .frame(height: {
+                        #if os(iOS)
+                        let isPad = UIDevice.current.userInterfaceIdiom == .pad
+                        let isLandscape = UIScreen.main.bounds.width > UIScreen.main.bounds.height
+                        
+                        if isPad && isLandscape {
+                            let width = UIScreen.main.bounds.width
+                            if width >= 1366 { // 12.9인치 iPad Pro
+                                return 170
+                            } else if width >= 1194 { // 11인치 iPad (Air, Pro)
+                                return 142
+                            } else { // iPad mini
+                                return 52
+                            }
+                        } else {
+                            return 170 // 세로모드 또는 iPhone
+                        }
+                        #else
+                        return 170 // Mac
+                        #endif
+                    }())
                     .padding(.top, 10)
                     .onChange(of: selectedSession) { oldValue, newValue in
                         previousSession = oldValue
