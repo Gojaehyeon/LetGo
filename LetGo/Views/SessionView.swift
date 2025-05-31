@@ -295,9 +295,9 @@ struct SessionView: View {
                             if width >= 1366 { // 12.9인치 iPad Pro
                                 return 170
                             } else if width >= 1194 { // 11인치 iPad (Air, Pro)
-                                return 142
+                                return 50
                             } else { // iPad mini
-                                return 52
+                                return 10
                             }
                         } else {
                             return 170 // 세로모드 또는 iPhone
