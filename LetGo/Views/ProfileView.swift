@@ -51,12 +51,36 @@ struct ProfileLinkData {
     let url: String
 }
 
+// UIImage resize extension
+extension UIImage {
+    // 정방향으로 변환
+    func fixedOrientation() -> UIImage {
+        if imageOrientation == .up { return self }
+        UIGraphicsBeginImageContextWithOptions(size, false, scale)
+        draw(in: CGRect(origin: .zero, size: size))
+        let normalizedImage = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        return normalizedImage
+    }
+    func croppedToSquare() -> UIImage {
+        let image = self.fixedOrientation()
+        let originalSize = min(image.size.width, image.size.height)
+        let x = (image.size.width - originalSize) / 2.0
+        let y = (image.size.height - originalSize) / 2.0
+        let cropRect = CGRect(x: x, y: y, width: originalSize, height: originalSize)
+        guard let cgImage = image.cgImage?.cropping(to: cropRect) else { return image }
+        return UIImage(cgImage: cgImage, scale: image.scale, orientation: .up)
+    }
+    func resized(to targetSize: CGSize) -> UIImage {
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        return renderer.image { _ in
+            self.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+    }
+}
+
 struct ProfileView: View {
-    @FetchRequest(
-        entity: UserProfile.entity(),
-        sortDescriptors: [],
-        animation: .default
-    ) var profiles: FetchedResults<UserProfile>
+    @ObservedObject var userProfile: UserProfile
     @Environment(\.managedObjectContext) private var context
     @State private var showImagePicker = false
     @State private var pickerItem: PhotosPickerItem?
@@ -285,9 +309,14 @@ struct ProfileView: View {
             .onChange(of: pickerItem) { newItem in
                 if let item = newItem {
                     item.loadTransferable(type: Data.self) { result in
-                        if case .success(let data?) = result {
-                            DispatchQueue.main.async {
-                                userProfile.imageData = data
+                        if case .success(let data?) = result, let uiImage = UIImage(data: data) {
+                            // Fix orientation, crop to square, then resize and compress before saving
+                            let fixed = uiImage.fixedOrientation()
+                            let square = fixed.croppedToSquare()
+                            let resized = square.resized(to: CGSize(width: 300, height: 300))
+                            if let compressed = resized.jpegData(compressionQuality: 0.7) {
+                                userProfile.imageData = compressed
+                                try? context.save()
                             }
                         }
                     }
@@ -391,18 +420,6 @@ struct ProfileView: View {
         }
     }
 
-    var userProfile: UserProfile {
-        if let profile = profiles.first {
-            return profile
-        } else {
-            let newProfile = UserProfile(context: context)
-            newProfile.nickname = ""
-            newProfile.imageData = nil
-            try? context.save()
-            return newProfile
-        }
-    }
-
     // 언어별 링크 데이터 정의
     var profileLinks: [ProfileLinkData] {
         let lang = Locale.current.languageCode
@@ -491,5 +508,5 @@ struct ProfileLinkCard: View {
 }
 
 #Preview {
-    ProfileView()
+    ProfileView(userProfile: UserProfile(context: PersistenceController.shared.container.viewContext))
 }

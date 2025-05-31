@@ -5,4 +5,5 @@ import CoreData
 public class UserProfile: NSManagedObject {
     @NSManaged public var nickname: String?
     @NSManaged public var imageData: Data?
-} 
+    @NSManaged public var id: String?
+}

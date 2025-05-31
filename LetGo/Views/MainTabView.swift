@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreData
 
 func isPadOrMac() -> Bool {
     #if targetEnvironment(macCatalyst)
@@ -18,6 +19,21 @@ struct MainTabView: View {
     @State private var showWriteSheet = false
     @Environment(\.managedObjectContext) private var context
 
+    var mainProfile: UserProfile {
+        let mainProfileID = "mainProfile"
+        let request = NSFetchRequest<UserProfile>(entityName: "UserProfile")
+        request.predicate = NSPredicate(format: "id == %@", mainProfileID)
+        request.fetchLimit = 1
+        if let result = try? context.fetch(request), let profile = result.first {
+            return profile
+        } else {
+            let newProfile = UserProfile(context: context)
+            newProfile.id = mainProfileID
+            try? context.save()
+            return newProfile
+        }
+    }
+
     var body: some View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
@@ -30,7 +46,7 @@ struct MainTabView: View {
                 } else if selectedTab == 2 {
                     OneLineView()
                 } else {
-                    ProfileView()
+                    ProfileView(userProfile:  mainProfile)
                 }
             }
             if let writing = selectedWriting {

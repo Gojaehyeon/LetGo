@@ -144,6 +144,21 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     }
 }
 
+func fetchMainProfile(context: NSManagedObjectContext) -> UserProfile {
+    let mainProfileID = "mainProfile"
+    let request = NSFetchRequest<UserProfile>(entityName: "UserProfile")
+    request.predicate = NSPredicate(format: "id == %@", mainProfileID)
+    request.fetchLimit = 1
+    if let result = try? context.fetch(request), let profile = result.first {
+        return profile
+    } else {
+        let newProfile = UserProfile(context: context)
+        newProfile.id = mainProfileID
+        try? context.save()
+        return newProfile
+    }
+}
+
 struct SessionView: View {
     @FetchRequest(
         entity: UserProfile.entity(),
@@ -163,9 +178,7 @@ struct SessionView: View {
     @State private var isLocationEnabled: Bool = true
     @AppStorage("themeColorHex") var themeColorHex: String = "#FF9500"
 
-    var userProfile: UserProfile? {
-        profiles.first
-    }
+    var userProfile: UserProfile { fetchMainProfile(context: context) }
 
     let sessions: [SessionInfo] = [
         SessionInfo(
@@ -214,7 +227,7 @@ struct SessionView: View {
                         Circle()
                             .stroke(Color.white, lineWidth: 4)
                     )
-                if let data = userProfile?.imageData, let uiImage = UIImage(data: data) {
+                if let data = userProfile.imageData, let uiImage = UIImage(data: data) {
                     Image(uiImage: uiImage)
                         .resizable()
                         .aspectRatio(contentMode: .fill)
@@ -254,7 +267,7 @@ struct SessionView: View {
                     selectedTab = 3
                 }) {
                     HStack(spacing: 12) {
-                        if let data = userProfile?.imageData, let uiImage = UIImage(data: data) {
+                        if let data = userProfile.imageData, let uiImage = UIImage(data: data) {
                             Image(uiImage: uiImage)
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
@@ -272,7 +285,7 @@ struct SessionView: View {
                                     .foregroundColor(.white)
                             }
                         }
-                        Text((userProfile?.nickname?.isEmpty == false ? userProfile?.nickname : "Letgo") ?? "Letgo")
+                        Text((userProfile.nickname?.isEmpty == false ? userProfile.nickname : "Letgo") ?? "Letgo")
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(.black)
