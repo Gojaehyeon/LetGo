@@ -13,6 +13,8 @@ public class Writing: NSManagedObject {
     @NSManaged public var type: String
     @NSManaged public var isLiked: Bool
     @NSManaged public var address: String?
+    @NSManaged public var latitude: Double
+    @NSManaged public var longitude: Double
 
     var writingType: WritingType {
         WritingType(rawValue: type) ?? .threeMin

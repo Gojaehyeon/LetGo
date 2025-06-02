@@ -226,6 +226,10 @@ struct SessionTimerView: View {
                 type: sessionType,
                 address: addressToSave
             )
+            if isLocationEnabled, let loc = locationManager.lastLocation {
+                writing.latitude = loc.coordinate.latitude
+                writing.longitude = loc.coordinate.longitude
+            }
             managedObjectContext.insert(writing)
         }
         presentationMode.wrappedValue.dismiss()

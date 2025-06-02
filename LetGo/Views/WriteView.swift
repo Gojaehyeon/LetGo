@@ -43,6 +43,10 @@ struct WriteView: View {
                         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
                         guard !trimmedTitle.isEmpty && !trimmedContent.isEmpty else { return }
                         let newWriting = Writing(context: context, title: trimmedTitle, content: trimmedContent, date: Date(), type: .free, address: isLocationEnabled ? address : nil)
+                        if isLocationEnabled, let loc = locationManager.lastLocation {
+                            newWriting.latitude = loc.coordinate.latitude
+                            newWriting.longitude = loc.coordinate.longitude
+                        }
                         try? context.save()
                         isContentFocused = false
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

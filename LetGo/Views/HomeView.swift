@@ -127,3 +127,4 @@ private let dateFormatter: DateFormatter = {
 #Preview {
     HomeView(selectedWriting: .constant(nil), refreshID: .constant(UUID()), selectedEditingWriting: .constant(nil))
 } 
+ 

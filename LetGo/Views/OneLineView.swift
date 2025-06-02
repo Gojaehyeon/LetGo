@@ -117,16 +117,16 @@ struct OneLineView: View {
 
 struct OneLineHeader: View {
     var body: some View {
-        HStack {
-            Text(NSLocalizedString("one_line_title", comment: ""))
-                .font(.system(size: 22, weight: .bold))
-                .padding(.leading, 20)
-            Spacer()
-        }
-        .padding(.top, 16)
-        .padding(.bottom, 8)
-        .background(Color.white)
-        Divider()
+//        HStack {
+//            Text(NSLocalizedString("one_line_title", comment: ""))
+//                .font(.system(size: 22, weight: .bold))
+//                .padding(.leading, 20)
+//            Spacer()
+//        }
+//        .padding(.top, 16)
+//        .padding(.bottom, 8)
+//        .background(Color.white)
+//        Divider()
     }
 }
 

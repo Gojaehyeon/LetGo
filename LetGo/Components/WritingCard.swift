@@ -136,3 +136,4 @@ struct ActivityView: UIViewControllerRepresentable {
         .environment(\.managedObjectContext, context)
         .padding()
 } 
+ 

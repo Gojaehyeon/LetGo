@@ -44,7 +44,7 @@ struct MainTabView: View {
                 } else if selectedTab == 1 {
                     SessionView(selectedTab: $selectedTab, isTabBarHidden: $isTabBarHidden)
                 } else if selectedTab == 2 {
-                    OneLineView()
+                    ClusterMapView()
                 } else {
                     ProfileView(userProfile:  mainProfile)
                 }
@@ -70,7 +70,7 @@ struct MainTabView: View {
             }
             if !isTabBarHidden && selectedWriting == nil {
                 Rectangle()
-                    .fill(Color.white)
+                    .fill(selectedTab == 2 ? Color.clear : Color.white)
                     .frame(height: 85)
                     .shadow(color: Color.black.opacity(0.08), radius: 8, y: -2)
                     .opacity(selectedTab == 1 ? 0 : 1)
@@ -84,7 +84,7 @@ struct MainTabView: View {
                         .onTapGesture { selectedTab = 1 }
                     AnimatedPlusButton(isActive: $showWriteModal)
                         .offset(y: -18)
-                    TabBarItem(icon: "ellipsis.bubble.fill", isSelected: selectedTab == 2, isSessionView: false)
+                    TabBarItem(icon: "map", isSelected: selectedTab == 2, isSessionView: false)
                         .offset(y: -18)
                         .onTapGesture { selectedTab = 2 }
                     TabBarItem(icon: "person.fill", isSelected: selectedTab == 3, isSessionView: false)
