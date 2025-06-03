@@ -131,7 +131,7 @@ struct MainTabView: View {
                 .zIndex(200)
             }
         }
-        .edgesIgnoringSafeArea(.bottom)
+        // .edgesIgnoringSafeArea(.bottom)
         .overlay(
             Group {
                 if showWriteModal {
