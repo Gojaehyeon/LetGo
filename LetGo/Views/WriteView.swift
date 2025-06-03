@@ -174,3 +174,4 @@ struct WriteView: View {
     return WriteView()
         .environment(\.managedObjectContext, context)
 } 
+ 

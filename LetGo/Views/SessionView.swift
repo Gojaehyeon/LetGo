@@ -177,8 +177,8 @@ struct SessionView: View {
     @State private var showSessionSettingSheet = false
     @State private var isLocationEnabled: Bool = true
     @AppStorage("themeColorHex") var themeColorHex: String = "#FF9500"
-    @State private var showOneLineOverlay = false
-    @State private var oneLineOffset: CGFloat = UIScreen.main.bounds.width
+    @Binding var showOneLineOverlay: Bool
+    @Binding var oneLineOffset: CGFloat
 
     var userProfile: UserProfile { fetchMainProfile(context: context) }
 
@@ -293,20 +293,17 @@ struct SessionView: View {
                             .foregroundColor(.black)
                         Spacer()
                         // DM 아이콘 버튼
-                        Button(action: {
-                            oneLineOffset = UIScreen.main.bounds.width
-                            showOneLineOverlay = true
-                            withAnimation(.easeInOut) {
-                                oneLineOffset = 0
-                            }
-                        }) {
-                            Image(systemName: "paperplane.fill")
-                                .font(.system(size: 22, weight: .bold))
-                                .foregroundColor(Color.theme.opacity(0.6))
-                                .padding(8)
-                        }
-                        .background(Color.white.opacity(0.7))
-                        .clipShape(Circle())
+//                        Button(action: {
+//                            showOneLineOverlay = true
+//                            oneLineOffset = 0
+//                        }) {
+//                            Image(systemName: "paperplane.fill")
+//                                .font(.system(size: 22, weight: .bold))
+//                                .foregroundColor(Color.theme.opacity(0.6))
+//                                .padding(8)
+//                        }
+//                        .background(Color.white.opacity(0.7))
+//                        .clipShape(Circle())
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 24)
@@ -412,75 +409,20 @@ struct SessionView: View {
                     Spacer()
                 }
             }
-            if showOneLineOverlay {
-                ZStack(alignment: .topLeading) {
-                    Color.white.ignoresSafeArea()
-                    VStack(spacing: 0) {
-                        // 커스텀 Back 버튼
-                        HStack {
-                            Button(action: {
-                                withAnimation(.easeInOut(duration: 0.1)) {
-                                    oneLineOffset = UIScreen.main.bounds.width
-                                }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    showOneLineOverlay = false
-                                    oneLineOffset = UIScreen.main.bounds.width
-                                }
-                            }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(Color(.darkGray))
-                                    .padding(.leading, 10)
-                            }
-                            Spacer()
-                        }
-                        .padding(.top, 16)
-                        .padding(.leading, 8)
-                        .padding(.bottom, 16)
-                        Divider()
-                        
-                        OneLineView()
-                    }
-                }
-                .offset(x: oneLineOffset)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            if value.translation.width > 0 {
-                                oneLineOffset = value.translation.width
-                            }
-                        }
-                        .onEnded { value in
-                            if value.translation.width > 100 {
-                                withAnimation(.easeInOut(duration: 0.1)) {
-                                    oneLineOffset = UIScreen.main.bounds.width
-                                }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    showOneLineOverlay = false
-                                    oneLineOffset = UIScreen.main.bounds.width
-                                }
-                            } else {
-                                withAnimation {
-                                    oneLineOffset = 0
-                                }
-                            }
-                        }
-                )
-                .zIndex(100)
-            }
         }
         .fullScreenCover(isPresented: $showModeSetting) {
             SessionTimerView(duration: (selectedSession == 0 ? 180 : selectedSession == 1 ? 300 : 420))
                 .onAppear { isTabBarHidden = true }
                 .onDisappear { isTabBarHidden = false }
         }
-        .animation(.easeInOut, value: showOneLineOverlay)
     }
 }
 
 #Preview {
     SessionView(
         selectedTab: .constant(0),
-        isTabBarHidden: .constant(false)
+        isTabBarHidden: .constant(false),
+        showOneLineOverlay: .constant(false),
+        oneLineOffset: .constant(UIScreen.main.bounds.width)
     )
 }

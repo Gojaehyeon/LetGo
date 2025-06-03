@@ -257,3 +257,4 @@ struct SessionTimerView: View {
     return SessionTimerView(duration: 35)
         .environment(\.managedObjectContext, context)
 }
+ 

@@ -4,6 +4,7 @@ import CoreData
 
 struct ClusterMapView: View {
     @Environment(\.managedObjectContext) private var context
+    @Binding var isTabBarHidden: Bool
     @FetchRequest(
         entity: Writing.entity(),
         sortDescriptors: [NSSortDescriptor(keyPath: \Writing.date, ascending: false)],
@@ -16,8 +17,12 @@ struct ClusterMapView: View {
     )
     @State private var selectedCluster: [Writing] = []
     @State private var showClusterOverlay = false
-    @State private var clusterOverlayOffset: CGFloat = UIScreen.main.bounds.width
     @StateObject private var locationManager = LocationManager()
+    @State private var selectedDetailWriting: Writing? = nil
+    @State private var selectedEditingWriting: Writing? = nil
+    @State private var useTransition: Bool = true
+    @State private var showEditSheet = false
+    @State private var showClusterSheet = false
     
     // Writing에 좌표가 있다고 가정 (latitude, longitude)
     var writingAnnotations: [WritingAnnotation] {
@@ -44,7 +49,7 @@ struct ClusterMapView: View {
     var clusterAnnotations: [WritingClusterAnnotation] {
         let annotations = writingAnnotations
         var clusters: [[WritingAnnotation]] = []
-        var visited = Set<UUID>()
+        var visited = Set<NSManagedObjectID>()
         for ann in annotations {
             if visited.contains(ann.id) { continue }
             var cluster = [ann]
@@ -76,10 +81,8 @@ struct ClusterMapView: View {
                 MapAnnotation(coordinate: annotation.coordinate) {
                     Button(action: {
                         selectedCluster = annotation.writings
-                        showClusterOverlay = true
-                        clusterOverlayOffset = UIScreen.main.bounds.width
-                        withAnimation(.easeInOut) {
-                            clusterOverlayOffset = 0
+                        DispatchQueue.main.async {
+                            showClusterSheet = true
                         }
                     }) {
                         ZStack {
@@ -102,10 +105,10 @@ struct ClusterMapView: View {
             VStack {
                 Spacer()
                 LinearGradient(
-                    gradient: Gradient(colors: [Color.white.opacity(0.85), Color.white.opacity(0.0)]),
+                    gradient: Gradient(colors: [Color.white.opacity(1.0), Color.white.opacity(0.0)]),
                     startPoint: .bottom, endPoint: .top
                 )
-                .frame(height: 180)
+                .frame(height: 220)
                 .ignoresSafeArea(edges: .bottom)
             }
             // 현재 위치 버튼
@@ -127,77 +130,95 @@ struct ClusterMapView: View {
             .padding(.trailing, 18)
             .padding(.bottom, 110)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-            // 오버레이 추가
-            if showClusterOverlay {
-                ZStack(alignment: .topLeading) {
-                    Color.white.ignoresSafeArea()
-                    VStack(spacing: 0) {
-                        // 상단 뒤로가기 버튼
-                        HStack {
-                            Button(action: {
-                                withAnimation(.easeInOut(duration: 0.1)) {
-                                    clusterOverlayOffset = UIScreen.main.bounds.width
-                                }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    showClusterOverlay = false
-                                    clusterOverlayOffset = UIScreen.main.bounds.width
-                                }
-                            }) {
-                                Image(systemName: "chevron.left")
-                                    .font(.system(size: 24))
-                                    .foregroundColor(Color(.darkGray))
-                                    .padding(.leading, 10)
-                            }
-                            Spacer()
+            // WritingDetailView 오버레이
+            if let writing = selectedDetailWriting {
+                let transition = useTransition ? AnyTransition.move(edge: .trailing) : .identity
+                WritingDetailView(
+                    writing: writing,
+                    onClose: { withTransition in
+                        if withTransition {
+                            withAnimation(.easeInOut) { selectedDetailWriting = nil }
+                        } else {
+                            selectedDetailWriting = nil
                         }
-                        .padding(.top, 16)
-                        .padding(.leading, 8)
-                        .padding(.bottom, 16)
-                        Divider()
-                        ScrollView {
-                            VStack(spacing: 12) {
-                                ForEach(selectedCluster, id: \.objectID) { writing in
-                                    WritingCard(writing: writing)
+                        useTransition = withTransition
+                        isTabBarHidden = false
+                    },
+                    selectedEditingWriting: Binding(
+                        get: { selectedEditingWriting },
+                        set: { newValue in
+                            selectedEditingWriting = newValue
+                            if newValue != nil { showEditSheet = true }
+                        }
+                    )
+                )
+                .transition(transition)
+                .zIndex(999)
+            }
+        }
+        .sheet(isPresented: $showClusterSheet) {
+            VStack(spacing: 0) {
+                // 헤더
+                HStack {
+                    Text("\(selectedCluster.count)개의 기록")
+                        .font(.headline)
+                        .padding(.vertical, 16)
+                }
+                .padding(.horizontal)
+
+                Divider()
+
+                // 카드 리스트
+                ScrollView {
+                    VStack(spacing: 0) {
+                        ForEach(selectedCluster, id: \.objectID) { writing in
+                            WritingCard(
+                                writing: writing,
+                                onDelete: { w in
+                                    context.delete(w)
+                                    try? context.save()
+                                },
+                                onEdit: {
+                                    selectedEditingWriting = writing
+                                    showEditSheet = true
+                                },
+                                showEllipsis: false
+                            )
+                            .padding(.vertical, 20)
+                            .onTapGesture {
+                                showClusterSheet = false
+                                withAnimation(.easeInOut) {
+                                    selectedDetailWriting = writing
+                                    isTabBarHidden = true
                                 }
+                                useTransition = true
                             }
-                            .padding(.top, 24)
-                            .padding(.bottom, 40)
-                            .padding(.horizontal, 12)
+                            Divider()
                         }
                     }
+                    .padding(.horizontal)
                 }
-                .offset(x: clusterOverlayOffset)
-                .gesture(
-                    DragGesture()
-                        .onChanged { value in
-                            if value.translation.width > 0 {
-                                clusterOverlayOffset = value.translation.width
-                            }
-                        }
-                        .onEnded { value in
-                            if value.translation.width > 100 {
-                                withAnimation(.easeInOut(duration: 0.1)) {
-                                    clusterOverlayOffset = UIScreen.main.bounds.width
-                                }
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                                    showClusterOverlay = false
-                                    clusterOverlayOffset = UIScreen.main.bounds.width
-                                }
-                            } else {
-                                withAnimation {
-                                    clusterOverlayOffset = 0
-                                }
-                            }
-                        }
-                )
-                .zIndex(100)
+            }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
+        .id(selectedCluster.first?.objectID)
+        .sheet(isPresented: $showEditSheet) {
+            if let editingWriting = selectedEditingWriting {
+                WritingEditView(writing: editingWriting, onSave: {
+                    showEditSheet = false
+                    selectedEditingWriting = nil
+                    selectedDetailWriting = nil
+                })
+            } else {
+                EmptyView()
             }
         }
     }
 }
 
 struct WritingAnnotation: Identifiable {
-    let id = UUID()
+    var id: NSManagedObjectID { writing.objectID }
     let writing: Writing
     let coordinate: CLLocationCoordinate2D
 }
@@ -215,3 +236,4 @@ extension CLLocationCoordinate2D {
         return loc1.distance(from: loc2)
     }
 }
+ 

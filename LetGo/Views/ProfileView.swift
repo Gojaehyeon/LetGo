@@ -510,3 +510,4 @@ struct ProfileLinkCard: View {
 #Preview {
     ProfileView(userProfile: UserProfile(context: PersistenceController.shared.container.viewContext))
 }
+ 

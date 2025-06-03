@@ -209,3 +209,4 @@ struct WritingEditView: View {
     return WritingEditView(writing: writing)
         .environment(\.managedObjectContext, context)
 } 
+ 

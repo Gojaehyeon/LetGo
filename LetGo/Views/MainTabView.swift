@@ -17,6 +17,8 @@ struct MainTabView: View {
     @State private var refreshID = UUID()
     @State private var showWriteModal = false
     @State private var showWriteSheet = false
+    @State private var showOneLineOverlay = false
+    @State private var oneLineOffset: CGFloat = UIScreen.main.bounds.width
     @Environment(\.managedObjectContext) private var context
 
     var mainProfile: UserProfile {
@@ -42,9 +44,9 @@ struct MainTabView: View {
                         HomeView(selectedWriting: $selectedWriting, refreshID: $refreshID, selectedEditingWriting: $selectedEditingWriting)
                     }
                 } else if selectedTab == 1 {
-                    SessionView(selectedTab: $selectedTab, isTabBarHidden: $isTabBarHidden)
+                    SessionView(selectedTab: $selectedTab, isTabBarHidden: $isTabBarHidden, showOneLineOverlay: $showOneLineOverlay, oneLineOffset: $oneLineOffset)
                 } else if selectedTab == 2 {
-                    ClusterMapView()
+                    ClusterMapView(isTabBarHidden: $isTabBarHidden)
                 } else {
                     ProfileView(userProfile:  mainProfile)
                 }
@@ -92,6 +94,41 @@ struct MainTabView: View {
                         .onTapGesture { selectedTab = 3 }
                 }
                 .frame(height: 80)
+            }
+            if showOneLineOverlay {
+                ZStack(alignment: .topLeading) {
+                    Color.white.ignoresSafeArea()
+                    VStack(spacing: 0) {
+                        HStack {
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.1)) { oneLineOffset = UIScreen.main.bounds.width }
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { showOneLineOverlay = false; oneLineOffset = UIScreen.main.bounds.width }
+                            }) {
+                                Image(systemName: "chevron.left")
+                                    .font(.system(size: 24))
+                                    .foregroundColor(Color(.darkGray))
+                                    .padding(.leading, 10)
+                            }
+                            Spacer()
+                        }
+                        .padding(.top, 16)
+                        .padding(.leading, 8)
+                        .padding(.bottom, 16)
+                        Divider()
+                        OneLineView()
+                    }
+                }
+                .offset(x: oneLineOffset)
+                .gesture(DragGesture()
+                    .onChanged { value in if value.translation.width > 0 { oneLineOffset = value.translation.width } }
+                    .onEnded { value in
+                        if value.translation.width > 100 {
+                            withAnimation(.easeInOut(duration: 0.1)) { oneLineOffset = UIScreen.main.bounds.width }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { showOneLineOverlay = false; oneLineOffset = UIScreen.main.bounds.width }
+                        } else { withAnimation { oneLineOffset = 0 } }
+                    }
+                )
+                .zIndex(200)
             }
         }
         .edgesIgnoringSafeArea(.bottom)
@@ -175,3 +212,4 @@ struct MainTabView_Previews: PreviewProvider {
         MainTabView()
     }
 }
+ 

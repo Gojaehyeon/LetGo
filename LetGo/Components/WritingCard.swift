@@ -5,6 +5,7 @@ struct WritingCard: View {
     let writing: Writing
     var onDelete: ((Writing) -> Void)? = nil
     var onEdit: (() -> Void)? = nil
+    var showEllipsis: Bool = true
     
     var firstSentence: String {
         let trimmed = writing.content.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -46,25 +47,27 @@ struct WritingCard: View {
                     )
                     .cornerRadius(4)
                 Spacer()
-                Button(action: {
-                    showActionSheet = true
-                }) {
-                    Image(systemName: "ellipsis")
-                        .rotationEffect(.degrees(90))
-                        .font(.system(size: 19, weight: .medium))
-                        .foregroundColor(.gray)
-                        .frame(width: 24, height: 24)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(PlainButtonStyle())
-                .confirmationDialog("", isPresented: $showActionSheet, titleVisibility: .hidden) {
-                    Button(NSLocalizedString("delete", comment: ""), role: .destructive) {
-                        onDelete?(writing)
+                if showEllipsis {
+                    Button(action: {
+                        showActionSheet = true
+                    }) {
+                        Image(systemName: "ellipsis")
+                            .rotationEffect(.degrees(90))
+                            .font(.system(size: 19, weight: .medium))
+                            .foregroundColor(.gray)
+                            .frame(width: 24, height: 24)
+                            .contentShape(Rectangle())
                     }
-                    Button(NSLocalizedString("edit", comment: "")) {
-                        onEdit?()
+                    .buttonStyle(PlainButtonStyle())
+                    .confirmationDialog("", isPresented: $showActionSheet, titleVisibility: .hidden) {
+                        Button(NSLocalizedString("delete", comment: ""), role: .destructive) {
+                            onDelete?(writing)
+                        }
+                        Button(NSLocalizedString("edit", comment: "")) {
+                            onEdit?()
+                        }
+                        Button(NSLocalizedString("cancel", comment: ""), role: .cancel) {}
                     }
-                    Button(NSLocalizedString("cancel", comment: ""), role: .cancel) {}
                 }
             }
             HStack {
@@ -79,37 +82,38 @@ struct WritingCard: View {
                 .opacity(0.65)
                 .lineLimit(3)
 
-            HStack {
-                Button(action: {
-                    isLiked.toggle()
-                    writing.isLiked = isLiked
-                    try? context.save()
-                }) {
-                    Image(systemName: isLiked ? "heart.fill" : "heart")
-                        .foregroundColor(.theme)
-                        .font(.system(size: 23))
+            if showEllipsis {
+                HStack {
+                    Button(action: {
+                        isLiked.toggle()
+                        writing.isLiked = isLiked
+                        try? context.save()
+                    }) {
+                        Image(systemName: isLiked ? "heart.fill" : "heart")
+                            .foregroundColor(.theme)
+                            .font(.system(size: 23))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    Spacer()
+                    Button(action: {
+                        showShareSheet = true
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(.gray)
+                            .font(.system(size: 21))
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .sheet(isPresented: $showShareSheet) {
+                        ActivityView(activityItems: [shareText])
+                            .presentationDetents([.medium, .large])
+                    }
                 }
-                .buttonStyle(PlainButtonStyle())
-                Spacer()
-                Button(action: {
-                    showShareSheet = true
-                }) {
-                    Image(systemName: "square.and.arrow.up")
-                        .foregroundColor(.gray)
-                        .font(.system(size: 21))
-                }
-                .buttonStyle(PlainButtonStyle())
-                .sheet(isPresented: $showShareSheet) {
-                    ActivityView(activityItems: [shareText])
-                        .presentationDetents([.medium, .large])
-                }
+                .padding(.top, 6)
+                Rectangle()
+                    .frame(height: 1)
+                    .foregroundColor(.gray.opacity(0.18))
+                    .padding(.top, 2)
             }
-            .padding(.top, 6)
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(.gray.opacity(0.18))
-                .padding(.top, 2)
-            
         }
         .background(Color(.systemBackground))
         .contentShape(Rectangle())
@@ -132,7 +136,7 @@ struct ActivityView: UIViewControllerRepresentable {
 #Preview {
     let context = PersistenceController.shared.container.viewContext
     let writing = Writing(context: context, title: "샘플 제목", content: "이것은 샘플 내용입니다. 글쓰기 앱의 카드 뷰를 보여주기 위한 예시입니다.", date: Date(), type: .oneLine)
-    return WritingCard(writing: writing)
+    return WritingCard(writing: writing, showEllipsis: false)
         .environment(\.managedObjectContext, context)
         .padding()
 } 
